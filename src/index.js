@@ -21,15 +21,15 @@ export default class HelloWorld extends Component {
         y: 400,
       },
     },
-    backgroundColor: '#ccc'
+    backgroundColor: '#ccc',
   };
 
   constructor(props) {
     super(props);
     const { box, pointer } = this.props.start;
     const base = [
-      { x: box.x + box.width, y: (box.y + box.height * 0.25) },
-      { x: box.x + box.width, y: (box.y + box.height * 0.75) },
+      { x: box.x + box.width, y: box.y + box.height * 0.25 },
+      { x: box.x + box.width, y: box.y + box.height * 0.75 },
     ];
 
     const control = { x: box.x + box.width, y: (box.y + box.height * 0.5) };
@@ -40,10 +40,43 @@ export default class HelloWorld extends Component {
         control,
         destination: pointer,
       },
+      box: {
+        x: box.x,
+        y: box.y,
+        width: box.width,
+        height: box.height,
+      },
     };
   }
 
-  onDrag(e) {
+  onBoxDrag(e, { position }) {
+    console.log(`${position.left}, ${position.top}`);
+    const { width, height } = this.state.box;
+    const x = position.left;
+    const y = position.top;
+    const base = [
+      { x: x + width, y: y + height * 0.25 },
+      { x: x + width, y: y + height * 0.75 },
+    ];
+    const control = { x: x + width, y: y + height * 0.5 };
+    const { destination } = this.state.pointer;
+    this.setState({
+      pointer: {
+        base,
+        control,
+        destination,
+      },
+      box: {
+        width,
+        height,
+        x,
+        y,
+      },
+    });
+  }
+
+  onPointerDrag(e) {
+    console.dir(e);
     const { base, control } = this.state.pointer;
     this.setState({
       pointer: {
@@ -66,10 +99,11 @@ export default class HelloWorld extends Component {
         <Resizable
           start={ start.box }
           customStyle={{ backgroundColor }}
+          onDrag={ ::this.onBoxDrag }
         >
           Hello, world
         </Resizable>
-        <svg width="1000" height="1000" style={{ position: 'absolute', top:'0px' }}>
+        <svg width="2000" height="2000" style={{/* TODO: add absolute */}}>
           <path
             d={ `M ${ base[0].x } ${ base[0].y }
                  Q ${ control.x } ${ control.y } ${ destination.x } ${ destination.y }
@@ -79,7 +113,7 @@ export default class HelloWorld extends Component {
         </svg>
         <Draggable
           start={ start.pointer }
-          onDrag={ ::this.onDrag }
+          onDrag={ ::this.onPointerDrag }
         >
           <div style={{
             width: '20px',
