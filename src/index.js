@@ -9,31 +9,44 @@ export default class HelloWorld extends Component {
 
   static defaultProps = {
     start: {
-      x: 0,
-      y: 0,
-      width: 100,
-      height: 100,
+      box: {
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+      },
+      pointer: {
+        x: 0,
+        y: 0,
+      },
     },
   };
 
   constructor(props) {
     super(props);
+    const { box } = this.props.start;
+    const base = [
+      { x: box.x + box.width, y: (box.y + box.height * 0.25) },
+      { x: box.x + box.width, y: (box.y + box.height * 0.75) },
+    ];
+
+    const control = { x: box.x + box.width, y: (box.y + box.height * 0.5) };
+
     this.state = {
       pointer: {
+        base,
+        control,
         destination: { x: 300, y: 300 },
-        base: [
-          { x: 100, y: 100 },
-          { x: 100, y: 150 },
-        ],
       },
     };
   }
 
   onDrag(e) {
-    const { base } = this.state.pointer;
+    const { base, control } = this.state.pointer;
     this.setState({
       pointer: {
         base,
+        control,
         destination: {
           x: e.clientX,
           y: e.clientY,
@@ -44,11 +57,11 @@ export default class HelloWorld extends Component {
 
   render() {
     const { start } = this.props;
-    const { base, destination } = this.state.pointer;
+    const { base, destination, control } = this.state.pointer;
     return (
       <div>
         <Resizable
-          start={ start }
+          start={ start.box }
           customStyle={
              { background: '#333' }
            }
@@ -58,9 +71,9 @@ export default class HelloWorld extends Component {
         <svg width="2000" height="2000">
           <path
             d={ `M ${ base[0].x } ${ base[0].y }
-                 Q 100 125 ${ destination.x } ${ destination.y }
-                 Q 100 125 ${ base[1].x } ${ base[1].y }` }
-            fill="purple"
+                 Q ${ control.x } ${ control.y } ${ destination.x } ${ destination.y }
+                 Q ${ control.x } ${ control.y } ${ base[1].x } ${ base[1].y }` }
+            fill="#333"
           />
         </svg>
         <Draggable
