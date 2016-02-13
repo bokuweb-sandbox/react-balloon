@@ -1,10 +1,10 @@
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import Resizable from 'react-resizable-and-movable';
 import Draggable from 'react-draggable';
 
 export default class HelloWorld extends Component {
   static propTypes = {
-
+    start: PropTypes.object.isRequired
   };
 
   static defaultProps = {
