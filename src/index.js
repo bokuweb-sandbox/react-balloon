@@ -5,6 +5,7 @@ import Draggable from 'react-draggable';
 export default class HelloWorld extends Component {
   static propTypes = {
     start: PropTypes.object.isRequired,
+    backgroundColor: PropTypes.string,
   };
 
   static defaultProps = {
@@ -20,6 +21,7 @@ export default class HelloWorld extends Component {
         y: 400,
       },
     },
+    backgroundColor: '#ccc'
   };
 
   constructor(props) {
@@ -56,24 +58,23 @@ export default class HelloWorld extends Component {
   }
 
   render() {
-    const { start } = this.props;
+    const { start, backgroundColor } = this.props;
     const { base, destination, control } = this.state.pointer;
+
     return (
       <div>
         <Resizable
           start={ start.box }
-          customStyle={
-             { background: '#333' }
-           }
+          customStyle={{ backgroundColor }}
         >
           Hello, world
         </Resizable>
-        <svg width="2000" height="2000">
+        <svg width="1000" height="1000" style={{ position: 'absolute', top:'0px' }}>
           <path
             d={ `M ${ base[0].x } ${ base[0].y }
                  Q ${ control.x } ${ control.y } ${ destination.x } ${ destination.y }
                  Q ${ control.x } ${ control.y } ${ base[1].x } ${ base[1].y }` }
-            fill="#333"
+            fill={ backgroundColor }
           />
         </svg>
         <Draggable
@@ -83,7 +84,7 @@ export default class HelloWorld extends Component {
           <div style={{
             width: '20px',
             height: '20px',
-            background: '#333',
+            background: backgroundColor,
             position: 'absolute',
             top: 0,
             left: 0,
