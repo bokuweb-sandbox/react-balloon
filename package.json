@@ -28,6 +28,7 @@
   "devDependencies": {
     "babel": "^6.3.26",
     "babel-cli": "^6.4.5",
+    "babel-eslint": "^4.1.8",
     "babel-plugin-espower": "^2.0.0",
     "babel-polyfill": "^6.5.0",
     "babel-preset-airbnb": "^1.1.1",
