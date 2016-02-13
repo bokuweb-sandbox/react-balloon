@@ -10,21 +10,21 @@ export default class HelloWorld extends Component {
   static defaultProps = {
     start: {
       box: {
-        x: 0,
-        y: 0,
+        x: 200,
+        y: 200,
         width: 100,
         height: 100,
       },
       pointer: {
-        x: 0,
-        y: 0,
+        x: 400,
+        y: 400,
       },
     },
   };
 
   constructor(props) {
     super(props);
-    const { box } = this.props.start;
+    const { box, pointer } = this.props.start;
     const base = [
       { x: box.x + box.width, y: (box.y + box.height * 0.25) },
       { x: box.x + box.width, y: (box.y + box.height * 0.75) },
@@ -36,7 +36,7 @@ export default class HelloWorld extends Component {
       pointer: {
         base,
         control,
-        destination: { x: 300, y: 300 },
+        destination: pointer,
       },
     };
   }
@@ -77,7 +77,7 @@ export default class HelloWorld extends Component {
           />
         </svg>
         <Draggable
-          start={{ x: 300, y: 300 }}
+          start={ start.pointer }
           onDrag={ ::this.onDrag }
         >
           <div style={{
