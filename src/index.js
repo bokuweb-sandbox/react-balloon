@@ -16,7 +16,7 @@ export default class HelloWorld extends Component {
         width: 100,
         height: 100,
       },
-      pointer: {
+      destination: {
         x: 0,
         y: 0,
       },
@@ -26,10 +26,8 @@ export default class HelloWorld extends Component {
 
   constructor(props) {
     super(props);
-    const { box, pointer } = this.props.start;
-    const boxCenter = this.getBoxCenter(box);
-    const type = this.getPointerType(boxCenter, pointer);
-    const pointerState = this.calculatePointer(pointer, box, type);
+    const { box, destination } = this.props.start;
+    const pointerState = this.getPointer(box, destination);
     this.state = {
       pointer: pointerState,
       box: {
@@ -46,9 +44,7 @@ export default class HelloWorld extends Component {
     const x = position.left;
     const y = position.top;
     const box = { x, y, width, height };
-    const boxCenter = this.getBoxCenter(box);
-    const type = this.getPointerType(boxCenter, destination);
-    const pointerState = this.calculatePointer(destination, box, type);
+    const pointerState = this.getPointer(box, destination);
     this.setState({
       pointer: pointerState,
       box,
@@ -57,10 +53,8 @@ export default class HelloWorld extends Component {
 
   onPointerDrag(e) {
     const { box } = this.state;
-    const boxCenter = this.getBoxCenter(box);
-    const pointer = { x: e.clientX, y: e.clientY };
-    const type = this.getPointerType(boxCenter, pointer);
-    const pointerState = this.calculatePointer(pointer, box, type);
+    const destination = { x: e.clientX, y: e.clientY };
+    const pointerState = this.getPointer(box, destination);
     this.setState({ pointer: pointerState });
   }
 
@@ -135,6 +129,12 @@ export default class HelloWorld extends Component {
       control,
       destination,
     };
+  }
+
+  getPointer(box, destination) {
+    const boxCenter = this.getBoxCenter(box);
+    const type = this.getPointerType(boxCenter, destination);
+    return this.calculatePointer(destination, box, type);
   }
 
   render() {
