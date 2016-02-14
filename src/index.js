@@ -29,7 +29,7 @@ export default class HelloWorld extends Component {
     const { box, pointer } = this.props.start;
     const boxCenter = this.getBoxCenter(box);
     const type = this.getPointerType(boxCenter, pointer);
-    const pointerState = this.getPointerState(pointer, box, type);
+    const pointerState = this.calculatePointer(pointer, box, type);
     this.state = {
       pointer: pointerState,
       box: {
@@ -48,7 +48,7 @@ export default class HelloWorld extends Component {
     const box = { x, y, width, height };
     const boxCenter = this.getBoxCenter(box);
     const type = this.getPointerType(boxCenter, destination);
-    const pointerState = this.getPointerState(destination, box, type);
+    const pointerState = this.calculatePointer(destination, box, type);
     this.setState({
       pointer: pointerState,
       box,
@@ -60,7 +60,7 @@ export default class HelloWorld extends Component {
     const boxCenter = this.getBoxCenter(box);
     const pointer = { x: e.clientX, y: e.clientY };
     const type = this.getPointerType(boxCenter, pointer);
-    const pointerState = this.getPointerState(pointer, box, type);
+    const pointerState = this.calculatePointer(pointer, box, type);
     this.setState({ pointer: pointerState });
   }
 
@@ -87,7 +87,7 @@ export default class HelloWorld extends Component {
     return rad * 360 / (2 * Math.PI);
   }
 
-  getPointerState(destination, box, type) {
+  calculatePointer(destination, box, type) {
     let base;
     let control;
     const { x, y, width, height } = box;
