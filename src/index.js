@@ -17,8 +17,8 @@ export default class HelloWorld extends Component {
         height: 100,
       },
       pointer: {
-        x: 400,
-        y: 400,
+        x: 250,
+        y: 0,
       },
     },
     backgroundColor: '#ccc',
@@ -27,6 +27,13 @@ export default class HelloWorld extends Component {
   constructor(props) {
     super(props);
     const { box, pointer } = this.props.start;
+    const boxCenter = {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2,
+    };
+
+    const type = this.getPointerType(boxCenter, pointer);
+
     const base = [
       { x: box.x + box.width, y: box.y + box.height * 0.25 },
       { x: box.x + box.width, y: box.y + box.height * 0.75 },
@@ -35,6 +42,7 @@ export default class HelloWorld extends Component {
     const control = { x: box.x + box.width, y: (box.y + box.height * 0.5) };
 
     this.state = {
+      type,
       pointer: {
         base,
         control,
@@ -47,6 +55,23 @@ export default class HelloWorld extends Component {
         height: box.height,
       },
     };
+  }
+
+  getDegree(origin, destination) {
+    const x = destination.x - origin.x;
+    const y = origin.y - destination.y;
+    const rad = Math.atan2(y, x);
+    if (isNaN(rad)) return null; // TODO:
+    return rad * 360 / (2 * Math.PI);
+  }
+
+  getPointerType(origin, destination) {
+    const degree = this.getDegree(origin, destination);
+    console.log(degree);
+    if (-45 <= degree && degree < 45) return 'right';
+    if (45 <= degree && degree < 135) return 'top';
+    if ((135 <= degree && degree <= 180) || (-180 <= degree && degree < -135)) return 'left';
+    if (-135 <= degree && degree < -45) return 'bottom';
   }
 
   onBoxDrag(e, { position }) {
