@@ -1,11 +1,15 @@
 import React, { Component, PropTypes } from 'react';
 import Resizable from 'react-resizable-and-movable';
-import Draggable from 'react-draggable';
 
 export default class HelloWorld extends Component {
   static propTypes = {
     start: PropTypes.object.isRequired,
     backgroundColor: PropTypes.string,
+    zIndex: PropTypes.number,
+    minWidth: PropTypes.number,
+    minHeight: PropTypes.number,
+    maxWidth: PropTypes.number,
+    maxHeight: PropTypes.number,
   };
 
   static defaultProps = {
@@ -16,30 +20,21 @@ export default class HelloWorld extends Component {
         width: 100,
         height: 100,
       },
-      pointer: {
-        x: 400,
-        y: 400,
+      destination: {
+        x: 0,
+        y: 0,
       },
     },
     backgroundColor: '#ccc',
+    zIndex: 100,
   };
 
   constructor(props) {
     super(props);
-    const { box, pointer } = this.props.start;
-    const base = [
-      { x: box.x + box.width, y: box.y + box.height * 0.25 },
-      { x: box.x + box.width, y: box.y + box.height * 0.75 },
-    ];
-
-    const control = { x: box.x + box.width, y: (box.y + box.height * 0.5) };
-
+    const { box, destination } = this.props.start;
+    const pointerState = this.getPointer(box, destination);
     this.state = {
-      pointer: {
-        base,
-        control,
-        destination: pointer,
-      },
+      pointer: pointerState,
       box: {
         x: box.x,
         y: box.y,
@@ -49,61 +44,141 @@ export default class HelloWorld extends Component {
     };
   }
 
+  onBoxResize({ width, height }) {
+    // propsのmaxWidth/heightと境界までの差の小さい方をresizableのmaxwidth/heightに設定し、window外への拡大を防ぐ
+    console.log(this.refs.wrapper.clientWidth)
+    //const { box: { x, y }, pointer: { destination } } = this.state;
+    //const box = { x, y, width, height };
+    //const pointerState = this.getPointer(box, destination);
+    //this.setState({
+    //  pointer: pointerState,
+    //  box,
+    //});
+  }
+
   onBoxDrag(e, { position }) {
-    console.log(`${position.left}, ${position.top}`);
-    const { width, height } = this.state.box;
+    const { box: { width, height }, pointer: { destination } } = this.state;
     const x = position.left;
     const y = position.top;
-    const base = [
-      { x: x + width, y: y + height * 0.25 },
-      { x: x + width, y: y + height * 0.75 },
-    ];
-    const control = { x: x + width, y: y + height * 0.5 };
-    const { destination } = this.state.pointer;
+    const box = { x, y, width, height };
+    const pointerState = this.getPointer(box, destination);
     this.setState({
-      pointer: {
-        base,
-        control,
-        destination,
-      },
-      box: {
-        width,
-        height,
-        x,
-        y,
-      },
+      pointer: pointerState,
+      box,
     });
   }
 
-  onPointerDrag(e) {
-    console.dir(e);
-    const { base, control } = this.state.pointer;
-    this.setState({
-      pointer: {
-        base,
-        control,
-        destination: {
-          x: e.clientX,
-          y: e.clientY,
-        },
-      },
-    });
+  onPointerDrag(e, { position }) {
+    const { box } = this.state;
+    const destination = { x: position.left, y: position.top };
+    const pointerState = this.getPointer(box, destination);
+    this.setState({ pointer: pointerState });
+  }
+
+  getBoxCenter(box) {
+    return {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2,
+    };
+  }
+
+  getPointerType(origin, destination) {
+    const degree = this.getDegree(origin, destination);
+    if (degree >= -45 && degree < 45) return 'right';
+    if (degree >= 45 && degree < 135) return 'top';
+    if ((degree >= 135 && degree <= 180) || (degree >= -180 && degree < -135)) return 'left';
+    if (degree >= -135 && degree < -45) return 'bottom';
+  }
+
+  getDegree(origin, destination) {
+    const x = destination.x - origin.x;
+    const y = origin.y - destination.y;
+    const rad = Math.atan2(y, x);
+    if (isNaN(rad)) return 0;
+    return rad * 360 / (2 * Math.PI);
+  }
+
+  getPointer(box, destination) {
+    const boxCenter = this.getBoxCenter(box);
+    const type = this.getPointerType(boxCenter, destination);
+    return this.calculatePointer(destination, box, type);
+  }
+
+  calculatePointer(destination, box, type) {
+    let base;
+    let control;
+    const { x, y, width, height } = box;
+
+    switch (type) {
+      case 'top' :
+        base = [
+          { x: x + width * 0.25, y },
+          { x: x + width * 0.75, y },
+        ];
+        control = { x: x + width * 0.5, y };
+        break;
+      case 'right' :
+        base = [
+          { x: x + width, y: y + height * 0.25 },
+          { x: x + width, y: y + height * 0.75 },
+        ];
+        control = { x: x + width, y: y + height * 0.5 };
+        break;
+      case 'bottom' :
+        base = [
+          { x: x + width * 0.25, y: y + height },
+          { x: x + width * 0.75, y: y + height },
+        ];
+        control = { x: x + width * 0.5, y: y + height };
+        break;
+      case 'left' :
+        base = [
+          { x, y: y + height * 0.25 },
+          { x, y: y + height * 0.75 },
+        ];
+        control = { x, y: y + height * 0.5 };
+        break;
+      default:
+        base = [
+          { x: x + width, y: y + height * 0.25 },
+          { x: x + width, y: y + height * 0.75 },
+        ];
+        control = { x: x + width, y: y + height * 0.5 };
+        break;
+    }
+
+    return {
+      base,
+      control,
+      destination,
+    };
   }
 
   render() {
-    const { start, backgroundColor } = this.props;
+    const { start, backgroundColor, zIndex } = this.props;
     const { base, destination, control } = this.state.pointer;
 
     return (
-      <div>
+      <div ref='wrapper' style={{ width: '100%', height: '100%', zIndex }}>
         <Resizable
           start={ start.box }
           customStyle={{ backgroundColor }}
           onDrag={ ::this.onBoxDrag }
+          onResize={ ::this.onBoxResize }
+          bounds="parent"
+          zIndex={zIndex}
         >
-          Hello, world
+          { this.props.children }
         </Resizable>
-        <svg width="2000" height="2000" style={{/* TODO: add absolute */}}>
+        <Resizable
+           start={{ width: 20, height: 20, x: start.destination.x, y: start.destination.y }}
+           onDrag={ ::this.onPointerDrag }
+           bounds="parent"
+           isResizable={{ x: false, y: false, xy: false }}
+           customStyle={{ background: backgroundColor }}
+           zIndex={zIndex}
+        />
+        <svg width="100%" height="100%" style={{}}>
           <path
             d={ `M ${ base[0].x } ${ base[0].y }
                  Q ${ control.x } ${ control.y } ${ destination.x } ${ destination.y }
@@ -111,20 +186,6 @@ export default class HelloWorld extends Component {
             fill={ backgroundColor }
           />
         </svg>
-        <Draggable
-          start={ start.pointer }
-          onDrag={ ::this.onPointerDrag }
-        >
-          <div style={{
-            width: '20px',
-            height: '20px',
-            background: backgroundColor,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-          }}
-          />
-        </Draggable>
       </div>
     );
   }
