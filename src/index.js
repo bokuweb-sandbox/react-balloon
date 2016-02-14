@@ -31,7 +31,6 @@ export default class HelloWorld extends Component {
     const type = this.getPointerType(boxCenter, pointer);
     const pointerState = this.getPointerState(pointer, box, type);
     this.state = {
-      //type,
       pointer: pointerState,
       box: {
         x: box.x,
@@ -43,27 +42,16 @@ export default class HelloWorld extends Component {
   }
 
   onBoxDrag(e, { position }) {
-    const { width, height } = this.state.box;
+    const { box: { width, height }, pointer: { destination } } = this.state;
     const x = position.left;
     const y = position.top;
-    const base = [
-      { x: x + width, y: y + height * 0.25 },
-      { x: x + width, y: y + height * 0.75 },
-    ];
-    const control = { x: x + width, y: y + height * 0.5 };
-    const { destination } = this.state.pointer;
+    const box = { x, y, width, height };
+    const boxCenter = this.getBoxCenter(box);
+    const type = this.getPointerType(boxCenter, destination);
+    const pointerState = this.getPointerState(destination, box, type);
     this.setState({
-      pointer: {
-        base,
-        control,
-        destination,
-      },
-      box: {
-        width,
-        height,
-        x,
-        y,
-      },
+      pointer: pointerState,
+      box,
     });
   }
 
@@ -73,10 +61,7 @@ export default class HelloWorld extends Component {
     const pointer = { x: e.clientX, y: e.clientY };
     const type = this.getPointerType(boxCenter, pointer);
     const pointerState = this.getPointerState(pointer, box, type);
-
-    this.setState({
-      pointer: pointerState,
-    });
+    this.setState({ pointer: pointerState });
   }
 
   getBoxCenter(box) {
@@ -98,7 +83,7 @@ export default class HelloWorld extends Component {
     const x = destination.x - origin.x;
     const y = origin.y - destination.y;
     const rad = Math.atan2(y, x);
-    if (isNaN(rad)) return null; // TODO:
+    if (isNaN(rad)) return 0;
     return rad * 360 / (2 * Math.PI);
   }
 
@@ -136,7 +121,13 @@ export default class HelloWorld extends Component {
         ];
         control = { x, y: y + height * 0.5 };
         break;
-      default: console.log('unknown type');
+      default:
+        base = [
+          { x: x + width, y: y + height * 0.25 },
+          { x: x + width, y: y + height * 0.75 },
+        ];
+        control = { x: x + width, y: y + height * 0.5 };
+        break;
     }
 
     return {
