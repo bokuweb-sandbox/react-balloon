@@ -17,7 +17,7 @@ export default class HelloWorld extends Component {
         height: 100,
       },
       pointer: {
-        x: 250,
+        x: 0,
         y: 0,
       },
     },
@@ -35,7 +35,7 @@ export default class HelloWorld extends Component {
     const type = this.getPointerType(boxCenter, pointer);
     const pointerState = this.getPointerState(pointer, box, type);
     this.state = {
-      type,
+      //type,
       pointer: pointerState,
       box: {
         x: box.x,
@@ -47,11 +47,42 @@ export default class HelloWorld extends Component {
   }
 
   getPointerState(destination, box, type) {
-    const base = [
-      { x: box.x + box.width, y: box.y + box.height * 0.25 },
-      { x: box.x + box.width, y: box.y + box.height * 0.75 },
-    ];
-    const control = { x: box.x + box.width, y: (box.y + box.height * 0.5) };
+    let base;
+    let control;
+    const { x, y, width, height } = box;
+
+    switch (type) {
+      case 'top' :
+        base = [
+          { x: x + width * 0.25, y },
+          { x: x + width * 0.75, y },
+        ];
+        control = { x: x + width * 0.5, y };
+        break;
+      case 'right' :
+        base = [
+          { x: x + width, y: y + height * 0.25 },
+          { x: x + width, y: y + height * 0.75 },
+        ];
+        control = { x: x + width, y: y + height * 0.5 };
+        break;
+      case 'bottom' :
+        base = [
+          { x: x + width * 0.25, y: y + height },
+          { x: x + width * 0.75, y: y + height },
+        ];
+        control = { x: x + width * 0.5, y: y + height };
+        break;
+      case 'left' :
+        base = [
+          { x, y: y + height * 0.25 },
+          { x, y: y + height * 0.75 },
+        ];
+        control = { x, y: y + height * 0.5 };
+        break;
+      default: console.log('unknown type');
+    }
+
     return {
       base,
       control,
@@ -69,7 +100,6 @@ export default class HelloWorld extends Component {
 
   getPointerType(origin, destination) {
     const degree = this.getDegree(origin, destination);
-    console.log(degree);
     if (-45 <= degree && degree < 45) return 'right';
     if (45 <= degree && degree < 135) return 'top';
     if ((135 <= degree && degree <= 180) || (-180 <= degree && degree < -135)) return 'left';
@@ -103,17 +133,17 @@ export default class HelloWorld extends Component {
   }
 
   onPointerDrag(e) {
-    console.dir(e);
-    const { base, control } = this.state.pointer;
+    const { box } = this.state;
+    const boxCenter = {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2,
+    };
+    const pointer = { x: e.clientX, y: e.clientY };
+    const type = this.getPointerType(boxCenter, pointer);
+    const pointerState = this.getPointerState(pointer, box, type);
+
     this.setState({
-      pointer: {
-        base,
-        control,
-        destination: {
-          x: e.clientX,
-          y: e.clientY,
-        },
-      },
+      pointer: pointerState,
     });
   }
 
