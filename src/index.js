@@ -33,27 +33,29 @@ export default class HelloWorld extends Component {
     };
 
     const type = this.getPointerType(boxCenter, pointer);
-
-    const base = [
-      { x: box.x + box.width, y: box.y + box.height * 0.25 },
-      { x: box.x + box.width, y: box.y + box.height * 0.75 },
-    ];
-
-    const control = { x: box.x + box.width, y: (box.y + box.height * 0.5) };
-
+    const pointerState = this.getPointerState(pointer, box, type);
     this.state = {
       type,
-      pointer: {
-        base,
-        control,
-        destination: pointer,
-      },
+      pointer: pointerState,
       box: {
         x: box.x,
         y: box.y,
         width: box.width,
         height: box.height,
       },
+    };
+  }
+
+  getPointerState(destination, box, type) {
+    const base = [
+      { x: box.x + box.width, y: box.y + box.height * 0.25 },
+      { x: box.x + box.width, y: box.y + box.height * 0.75 },
+    ];
+    const control = { x: box.x + box.width, y: (box.y + box.height * 0.5) };
+    return {
+      base,
+      control,
+      destination,
     };
   }
 
