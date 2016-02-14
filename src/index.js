@@ -46,6 +46,63 @@ export default class HelloWorld extends Component {
     };
   }
 
+  onBoxDrag(e, { position }) {
+    console.log(`${position.left}, ${position.top}`);
+    const { width, height } = this.state.box;
+    const x = position.left;
+    const y = position.top;
+    const base = [
+      { x: x + width, y: y + height * 0.25 },
+      { x: x + width, y: y + height * 0.75 },
+    ];
+    const control = { x: x + width, y: y + height * 0.5 };
+    const { destination } = this.state.pointer;
+    this.setState({
+      pointer: {
+        base,
+        control,
+        destination,
+      },
+      box: {
+        width,
+        height,
+        x,
+        y,
+      },
+    });
+  }
+
+  onPointerDrag(e) {
+    const { box } = this.state;
+    const boxCenter = {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2,
+    };
+    const pointer = { x: e.clientX, y: e.clientY };
+    const type = this.getPointerType(boxCenter, pointer);
+    const pointerState = this.getPointerState(pointer, box, type);
+
+    this.setState({
+      pointer: pointerState,
+    });
+  }
+
+  getPointerType(origin, destination) {
+    const degree = this.getDegree(origin, destination);
+    if (degree >= -45 && degree < 45) return 'right';
+    if (degree >= 45 && degree < 135) return 'top';
+    if ((degree >= 135 && degree <= 180) || (degree >= -180 && degree < -135)) return 'left';
+    if (degree >= -135 && degree < -45) return 'bottom';
+  }
+
+  getDegree(origin, destination) {
+    const x = destination.x - origin.x;
+    const y = origin.y - destination.y;
+    const rad = Math.atan2(y, x);
+    if (isNaN(rad)) return null; // TODO:
+    return rad * 360 / (2 * Math.PI);
+  }
+
   getPointerState(destination, box, type) {
     let base;
     let control;
@@ -88,63 +145,6 @@ export default class HelloWorld extends Component {
       control,
       destination,
     };
-  }
-
-  getDegree(origin, destination) {
-    const x = destination.x - origin.x;
-    const y = origin.y - destination.y;
-    const rad = Math.atan2(y, x);
-    if (isNaN(rad)) return null; // TODO:
-    return rad * 360 / (2 * Math.PI);
-  }
-
-  getPointerType(origin, destination) {
-    const degree = this.getDegree(origin, destination);
-    if (-45 <= degree && degree < 45) return 'right';
-    if (45 <= degree && degree < 135) return 'top';
-    if ((135 <= degree && degree <= 180) || (-180 <= degree && degree < -135)) return 'left';
-    if (-135 <= degree && degree < -45) return 'bottom';
-  }
-
-  onBoxDrag(e, { position }) {
-    console.log(`${position.left}, ${position.top}`);
-    const { width, height } = this.state.box;
-    const x = position.left;
-    const y = position.top;
-    const base = [
-      { x: x + width, y: y + height * 0.25 },
-      { x: x + width, y: y + height * 0.75 },
-    ];
-    const control = { x: x + width, y: y + height * 0.5 };
-    const { destination } = this.state.pointer;
-    this.setState({
-      pointer: {
-        base,
-        control,
-        destination,
-      },
-      box: {
-        width,
-        height,
-        x,
-        y,
-      },
-    });
-  }
-
-  onPointerDrag(e) {
-    const { box } = this.state;
-    const boxCenter = {
-      x: box.x + box.width / 2,
-      y: box.y + box.height / 2,
-    };
-    const pointer = { x: e.clientX, y: e.clientY };
-    const type = this.getPointerType(boxCenter, pointer);
-    const pointerState = this.getPointerState(pointer, box, type);
-
-    this.setState({
-      pointer: pointerState,
-    });
   }
 
   render() {
