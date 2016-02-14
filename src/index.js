@@ -50,9 +50,9 @@ export default class HelloWorld extends Component {
     });
   }
 
-  onPointerDrag(e) {
+  onPointerDrag(e, { position }) {
     const { box } = this.state;
-    const destination = { x: e.clientX, y: e.clientY };
+    const destination = { x: position.left, y: position.top };
     const pointerState = this.getPointer(box, destination);
     this.setState({ pointer: pointerState });
   }
