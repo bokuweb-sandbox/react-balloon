@@ -27,11 +27,7 @@ export default class HelloWorld extends Component {
   constructor(props) {
     super(props);
     const { box, pointer } = this.props.start;
-    const boxCenter = {
-      x: box.x + box.width / 2,
-      y: box.y + box.height / 2,
-    };
-
+    const boxCenter = this.getBoxCenter(box);
     const type = this.getPointerType(boxCenter, pointer);
     const pointerState = this.getPointerState(pointer, box, type);
     this.state = {
@@ -47,7 +43,6 @@ export default class HelloWorld extends Component {
   }
 
   onBoxDrag(e, { position }) {
-    console.log(`${position.left}, ${position.top}`);
     const { width, height } = this.state.box;
     const x = position.left;
     const y = position.top;
@@ -74,10 +69,7 @@ export default class HelloWorld extends Component {
 
   onPointerDrag(e) {
     const { box } = this.state;
-    const boxCenter = {
-      x: box.x + box.width / 2,
-      y: box.y + box.height / 2,
-    };
+    const boxCenter = this.getBoxCenter(box);
     const pointer = { x: e.clientX, y: e.clientY };
     const type = this.getPointerType(boxCenter, pointer);
     const pointerState = this.getPointerState(pointer, box, type);
@@ -85,6 +77,13 @@ export default class HelloWorld extends Component {
     this.setState({
       pointer: pointerState,
     });
+  }
+
+  getBoxCenter(box) {
+    return {
+      x: box.x + box.width / 2,
+      y: box.y + box.height / 2,
+    };
   }
 
   getPointerType(origin, destination) {
