@@ -1,6 +1,5 @@
 import React, { Component, PropTypes } from 'react';
 import Resizable from 'react-resizable-and-movable';
-import Draggable from 'react-draggable';
 
 export default class HelloWorld extends Component {
   static propTypes = {
@@ -142,15 +141,25 @@ export default class HelloWorld extends Component {
     const { base, destination, control } = this.state.pointer;
 
     return (
-      <div>
+      <div style={{ width: '100%', height: '100%' }}>
         <Resizable
           start={ start.box }
           customStyle={{ backgroundColor }}
           onDrag={ ::this.onBoxDrag }
+           bounds="parent"
         >
           Hello, world
         </Resizable>
-        <svg width="2000" height="2000" style={{/* TODO: add absolute */}}>
+        <Resizable
+           start={{ width: 20, height: 20, x: start.destination.x, y: start.destination.y }}
+           onDrag={ ::this.onPointerDrag }
+           bounds="parent"
+           isResizable={{ x: false, y: false, xy: false }}
+           customStyle={{
+             background: backgroundColor,
+           }}
+           />
+        <svg width="100%" height="100%" style={{}}>
           <path
             d={ `M ${ base[0].x } ${ base[0].y }
                  Q ${ control.x } ${ control.y } ${ destination.x } ${ destination.y }
@@ -158,20 +167,6 @@ export default class HelloWorld extends Component {
             fill={ backgroundColor }
           />
         </svg>
-        <Draggable
-          start={ start.pointer }
-          onDrag={ ::this.onPointerDrag }
-        >
-          <div style={{
-            width: '20px',
-            height: '20px',
-            background: backgroundColor,
-            position: 'absolute',
-            top: 0,
-            left: 0,
-          }}
-          />
-        </Draggable>
       </div>
     );
   }
