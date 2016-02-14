@@ -81,6 +81,12 @@ export default class HelloWorld extends Component {
     return rad * 360 / (2 * Math.PI);
   }
 
+  getPointer(box, destination) {
+    const boxCenter = this.getBoxCenter(box);
+    const type = this.getPointerType(boxCenter, destination);
+    return this.calculatePointer(destination, box, type);
+  }
+
   calculatePointer(destination, box, type) {
     let base;
     let control;
@@ -129,12 +135,6 @@ export default class HelloWorld extends Component {
       control,
       destination,
     };
-  }
-
-  getPointer(box, destination) {
-    const boxCenter = this.getBoxCenter(box);
-    const type = this.getPointerType(boxCenter, destination);
-    return this.calculatePointer(destination, box, type);
   }
 
   render() {
