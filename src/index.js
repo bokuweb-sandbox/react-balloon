@@ -5,6 +5,11 @@ export default class HelloWorld extends Component {
   static propTypes = {
     start: PropTypes.object.isRequired,
     backgroundColor: PropTypes.string,
+    zIndex: PropTypes.number,
+    minWidth: PropTypes.number,
+    minHeight: PropTypes.number,
+    maxWidth: PropTypes.number,
+    maxHeight: PropTypes.number,
   };
 
   static defaultProps = {
@@ -21,6 +26,7 @@ export default class HelloWorld extends Component {
       },
     },
     backgroundColor: '#ccc',
+    zIndex: 100,
   };
 
   constructor(props) {
@@ -36,6 +42,18 @@ export default class HelloWorld extends Component {
         height: box.height,
       },
     };
+  }
+
+  onBoxResize({ width, height }) {
+    // propsのmaxWidth/heightと境界までの差の小さい方をresizableのmaxwidth/heightに設定し、window外への拡大を防ぐ
+    console.log(this.refs.wrapper.clientWidth)
+    //const { box: { x, y }, pointer: { destination } } = this.state;
+    //const box = { x, y, width, height };
+    //const pointerState = this.getPointer(box, destination);
+    //this.setState({
+    //  pointer: pointerState,
+    //  box,
+    //});
   }
 
   onBoxDrag(e, { position }) {
@@ -137,28 +155,29 @@ export default class HelloWorld extends Component {
   }
 
   render() {
-    const { start, backgroundColor } = this.props;
+    const { start, backgroundColor, zIndex } = this.props;
     const { base, destination, control } = this.state.pointer;
 
     return (
-      <div style={{ width: '100%', height: '100%' }}>
+      <div ref='wrapper' style={{ width: '100%', height: '100%', zIndex }}>
         <Resizable
           start={ start.box }
           customStyle={{ backgroundColor }}
           onDrag={ ::this.onBoxDrag }
-           bounds="parent"
+          onResize={ ::this.onBoxResize }
+          bounds="parent"
+          zIndex={zIndex}
         >
-          Hello, world
+          { this.props.children }
         </Resizable>
         <Resizable
            start={{ width: 20, height: 20, x: start.destination.x, y: start.destination.y }}
            onDrag={ ::this.onPointerDrag }
            bounds="parent"
            isResizable={{ x: false, y: false, xy: false }}
-           customStyle={{
-             background: backgroundColor,
-           }}
-           />
+           customStyle={{ background: backgroundColor }}
+           zIndex={zIndex}
+        />
         <svg width="100%" height="100%" style={{}}>
           <path
             d={ `M ${ base[0].x } ${ base[0].y }
