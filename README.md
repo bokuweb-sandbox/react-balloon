@@ -1,5 +1,8 @@
 # README
 
+react balloon conponent.
+
+[![Code Climate](https://codeclimate.com/github/bokuweb/react-balloon/badges/gpa.svg)](https://codeclimate.com/github/bokuweb/react-balloon)
 
 ## License
 
