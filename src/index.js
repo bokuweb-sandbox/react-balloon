@@ -10,6 +10,7 @@ export default class HelloWorld extends Component {
     minHeight: PropTypes.number,
     maxWidth: PropTypes.number,
     maxHeight: PropTypes.number,
+    marker: PropTypes.object.isRequired,
   };
 
   static defaultProps = {
@@ -25,6 +26,7 @@ export default class HelloWorld extends Component {
         y: 0,
       },
     },
+    marker: <div style={{ width: '20px', height: '20px', backgroundColor: '#ccc' }} />,
     backgroundColor: '#f5f5f5',
     zIndex: 100,
   };
@@ -161,7 +163,7 @@ export default class HelloWorld extends Component {
   }
 
   render() {
-    const { start, backgroundColor, zIndex, minWidth, minHeight } = this.props;
+    const { start, backgroundColor, zIndex, minWidth, minHeight, marker } = this.props;
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
     return (
@@ -181,13 +183,14 @@ export default class HelloWorld extends Component {
           { this.props.children }
         </Resizable>
         <Resizable
-           start={{ width: 20, height: 20, x: start.destination.x, y: start.destination.y }}
+           start={{ x: start.destination.x, y: start.destination.y }}
            onDrag={ ::this.onPointerDrag }
            bounds="parent"
            isResizable={{ x: false, y: false, xy: false }}
-           customStyle={{ background: backgroundColor }}
            zIndex={zIndex}
-        />
+        >
+          { marker }
+        </Resizable>  
         <svg width="100%" height="100%" style={{}}>
           <path
             d={ `M ${ base[0].x } ${ base[0].y }
