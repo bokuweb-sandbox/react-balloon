@@ -48,8 +48,10 @@ export default class HelloWorld extends Component {
 
   onBoxResize({ width, height }) {
     const { box: { x, y }, pointer: { destination } } = this.state;
-    const maxHeight = this.refs.wrapper.clientHeight - y;
-    const maxWidth = this.refs.wrapper.clientWidth - x;
+    const toBottomBoundary = this.refs.wrapper.clientHeight - y;
+    const toRightBoundary = this.refs.wrapper.clientWidth - x;
+    const maxHeight = (toBottomBoundary < this.props.maxHeight || !this.props.maxHeight) ? toBottomBoundary : this.props.maxHeight;
+    const maxWidth = (toRightBoundary < this.props.maxWidth || !this.props.maxWidth) ? toRightBoundary : this.props.maxWidth;
     const box = { x, y, width, height };
     const pointerState = this.getPointer(box, destination);
     this.setState({
