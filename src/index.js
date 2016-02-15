@@ -25,7 +25,7 @@ export default class HelloWorld extends Component {
         y: 0,
       },
     },
-    backgroundColor: '#ccc',
+    backgroundColor: '#f5f5f5',
     zIndex: 100,
   };
 
@@ -41,19 +41,23 @@ export default class HelloWorld extends Component {
         width: box.width,
         height: box.height,
       },
+      maxHeight: this.props.maxHeight,
+      maxWidth: this.props.maxWidth,
     };
   }
 
   onBoxResize({ width, height }) {
-    // propsのmaxWidth/heightと境界までの差の小さい方をresizableのmaxwidth/heightに設定し、window外への拡大を防ぐ
-    console.log(this.refs.wrapper.clientWidth)
-    //const { box: { x, y }, pointer: { destination } } = this.state;
-    //const box = { x, y, width, height };
-    //const pointerState = this.getPointer(box, destination);
-    //this.setState({
-    //  pointer: pointerState,
-    //  box,
-    //});
+    const { box: { x, y }, pointer: { destination } } = this.state;
+    const maxHeight = this.refs.wrapper.clientHeight - y;
+    const maxWidth = this.refs.wrapper.clientWidth - x;
+    const box = { x, y, width, height };
+    const pointerState = this.getPointer(box, destination);
+    this.setState({
+      pointer: pointerState,
+      box,
+      maxHeight,
+      maxWidth,
+    });
   }
 
   onBoxDrag(e, { position }) {
@@ -155,9 +159,9 @@ export default class HelloWorld extends Component {
   }
 
   render() {
-    const { start, backgroundColor, zIndex } = this.props;
+    const { start, backgroundColor, zIndex, minWidth, minHeight } = this.props;
     const { base, destination, control } = this.state.pointer;
-
+    const { maxHeight, maxWidth } = this.state;
     return (
       <div ref='wrapper' style={{ width: '100%', height: '100%', zIndex }}>
         <Resizable
@@ -165,8 +169,13 @@ export default class HelloWorld extends Component {
           customStyle={{ backgroundColor }}
           onDrag={ ::this.onBoxDrag }
           onResize={ ::this.onBoxResize }
+          onResizeStop={ ::this.onBoxResizeStop }
           bounds="parent"
-          zIndex={zIndex}
+          zIndex={ zIndex }
+          maxHeight={ maxHeight }
+          maxWidth={ maxWidth }
+          minHeight={ minHeight }
+          minWidth={ minWidth }
         >
           { this.props.children }
         </Resizable>
