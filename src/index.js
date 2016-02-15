@@ -15,8 +15,8 @@ export default class HelloWorld extends Component {
   static defaultProps = {
     start: {
       box: {
-        x: 200,
-        y: 200,
+        x: 0,
+        y: 0,
         width: 100,
         height: 100,
       },
@@ -171,7 +171,6 @@ export default class HelloWorld extends Component {
           customStyle={{ backgroundColor }}
           onDrag={ ::this.onBoxDrag }
           onResize={ ::this.onBoxResize }
-          onResizeStop={ ::this.onBoxResizeStop }
           bounds="parent"
           zIndex={ zIndex }
           maxHeight={ maxHeight }
