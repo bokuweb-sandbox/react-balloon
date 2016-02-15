@@ -10,13 +10,14 @@ export default class HelloWorld extends Component {
     minHeight: PropTypes.number,
     maxWidth: PropTypes.number,
     maxHeight: PropTypes.number,
+    marker: PropTypes.object.isRequired,
   };
 
   static defaultProps = {
     start: {
       box: {
-        x: 200,
-        y: 200,
+        x: 0,
+        y: 0,
         width: 100,
         height: 100,
       },
@@ -25,7 +26,8 @@ export default class HelloWorld extends Component {
         y: 0,
       },
     },
-    backgroundColor: '#ccc',
+    marker: <div style={{ width: '20px', height: '20px', backgroundColor: '#ccc' }} />,
+    backgroundColor: '#f5f5f5',
     zIndex: 100,
   };
 
@@ -41,19 +43,25 @@ export default class HelloWorld extends Component {
         width: box.width,
         height: box.height,
       },
+      maxHeight: this.props.maxHeight,
+      maxWidth: this.props.maxWidth,
     };
   }
 
   onBoxResize({ width, height }) {
-    // propsのmaxWidth/heightと境界までの差の小さい方をresizableのmaxwidth/heightに設定し、window外への拡大を防ぐ
-    console.log(this.refs.wrapper.clientWidth)
-    //const { box: { x, y }, pointer: { destination } } = this.state;
-    //const box = { x, y, width, height };
-    //const pointerState = this.getPointer(box, destination);
-    //this.setState({
-    //  pointer: pointerState,
-    //  box,
-    //});
+    const { box: { x, y }, pointer: { destination } } = this.state;
+    const toBottomBoundary = this.refs.wrapper.clientHeight - y;
+    const toRightBoundary = this.refs.wrapper.clientWidth - x;
+    const maxHeight = (toBottomBoundary < this.props.maxHeight || !this.props.maxHeight) ? toBottomBoundary : this.props.maxHeight;
+    const maxWidth = (toRightBoundary < this.props.maxWidth || !this.props.maxWidth) ? toRightBoundary : this.props.maxWidth;
+    const box = { x, y, width, height };
+    const pointerState = this.getPointer(box, destination);
+    this.setState({
+      pointer: pointerState,
+      box,
+      maxHeight,
+      maxWidth,
+    });
   }
 
   onBoxDrag(e, { position }) {
@@ -155,9 +163,9 @@ export default class HelloWorld extends Component {
   }
 
   render() {
-    const { start, backgroundColor, zIndex } = this.props;
+    const { start, backgroundColor, zIndex, minWidth, minHeight, marker } = this.props;
     const { base, destination, control } = this.state.pointer;
-
+    const { maxHeight, maxWidth } = this.state;
     return (
       <div ref='wrapper' style={{ width: '100%', height: '100%', zIndex }}>
         <Resizable
@@ -166,18 +174,23 @@ export default class HelloWorld extends Component {
           onDrag={ ::this.onBoxDrag }
           onResize={ ::this.onBoxResize }
           bounds="parent"
-          zIndex={zIndex}
+          zIndex={ zIndex }
+          maxHeight={ maxHeight }
+          maxWidth={ maxWidth }
+          minHeight={ minHeight }
+          minWidth={ minWidth }
         >
           { this.props.children }
         </Resizable>
         <Resizable
-           start={{ width: 20, height: 20, x: start.destination.x, y: start.destination.y }}
+           start={{ x: start.destination.x, y: start.destination.y }}
            onDrag={ ::this.onPointerDrag }
            bounds="parent"
            isResizable={{ x: false, y: false, xy: false }}
-           customStyle={{ background: backgroundColor }}
            zIndex={zIndex}
-        />
+        >
+          { marker }
+        </Resizable>  
         <svg width="100%" height="100%" style={{}}>
           <path
             d={ `M ${ base[0].x } ${ base[0].y }
