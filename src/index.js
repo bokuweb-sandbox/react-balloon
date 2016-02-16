@@ -13,6 +13,7 @@ export default class Balloon extends Component {
     marker: PropTypes.object.isRequired,
     className: PropTypes.string,
     children: PropTypes.any,
+    style: PropTypes.object,
   };
 
   static defaultProps = {
@@ -127,22 +128,22 @@ export default class Balloon extends Component {
     switch (type) {
       case 'top' :
         base = [
-          { x: x + width * 0.25, y },
-          { x: x + width * 0.75, y },
+          { x: x + width * 0.25, y: y + 1 },
+          { x: x + width * 0.75, y: y + 1 },
         ];
         control = { x: x + width * 0.5, y };
         break;
       case 'right' :
         base = [
-          { x: x + width, y: y + height * 0.25 },
-          { x: x + width, y: y + height * 0.75 },
+          { x: x + width - 1, y: y + height * 0.25 },
+          { x: x + width - 1, y: y + height * 0.75 },
         ];
         control = { x: x + width, y: y + height * 0.5 };
         break;
       case 'bottom' :
         base = [
-          { x: x + width * 0.25, y: y + height },
-          { x: x + width * 0.75, y: y + height },
+          { x: x + width * 0.25, y: y + height - 1 },
+          { x: x + width * 0.75, y: y + height - 1},
         ];
         control = { x: x + width * 0.5, y: y + height };
         break;
@@ -171,14 +172,14 @@ export default class Balloon extends Component {
 
   render() {
     const { start, backgroundColor, zIndex, minWidth, minHeight,
-            marker, className, children } = this.props;
+            marker, className, children, style } = this.props;
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
     return (
       <div ref="wrapper" className={className} style={{ width: '100%', height: '100%', zIndex }}>
         <Resizable
           start={ start.box }
-          customStyle={{ backgroundColor }}
+           customStyle={ Object.assign(style, { backgroundColor, border: `solid 1px ${backgroundColor}` }) }
           onDrag={ ::this.onBoxDrag }
           onResize={ ::this.onBoxResize }
           bounds="parent"
@@ -205,6 +206,8 @@ export default class Balloon extends Component {
                  Q ${ control.x } ${ control.y } ${ destination.x } ${ destination.y }
                  Q ${ control.x } ${ control.y } ${ base[1].x } ${ base[1].y }` }
             fill={ backgroundColor }
+            stroke={ backgroundColor }
+            strokeWidth={ 1 }
           />
         </svg>
       </div>
