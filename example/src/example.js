@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
 import Balloon from '../../src';
 
 export default class Example extends Component {
