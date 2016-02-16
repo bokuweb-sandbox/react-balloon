@@ -11,7 +11,7 @@ export default class Balloon extends Component {
     maxWidth: PropTypes.number,
     maxHeight: PropTypes.number,
     marker: PropTypes.object.isRequired,
-    className: PropTypes.object,
+    className: PropTypes.string,
   };
 
   static defaultProps = {
