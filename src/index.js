@@ -30,6 +30,7 @@ export default class Balloon extends Component {
     marker: <div style={{ width: '20px', height: '20px', backgroundColor: '#ccc' }} />,
     backgroundColor: '#f5f5f5',
     zIndex: 100,
+    className: '',
   };
 
   constructor(props) {
@@ -164,11 +165,11 @@ export default class Balloon extends Component {
   }
 
   render() {
-    const { start, backgroundColor, zIndex, minWidth, minHeight, marker } = this.props;
+    const { start, backgroundColor, zIndex, minWidth, minHeight, marker, className } = this.props;
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
     return (
-      <div ref='wrapper' style={{ width: '100%', height: '100%', zIndex }}>
+      <div ref='wrapper' className={className} style={{ width: '100%', height: '100%', zIndex }}>
         <Resizable
           start={ start.box }
           customStyle={{ backgroundColor }}
@@ -191,7 +192,7 @@ export default class Balloon extends Component {
            zIndex={zIndex}
         >
           { marker }
-        </Resizable>  
+        </Resizable>
         <svg width="100%" height="100%" style={{}}>
           <path
             d={ `M ${ base[0].x } ${ base[0].y }
