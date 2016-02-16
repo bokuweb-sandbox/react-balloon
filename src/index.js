@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import Resizable from 'react-resizable-and-movable';
 
-export default class HelloWorld extends Component {
+export default class Balloon extends Component {
   static propTypes = {
     start: PropTypes.object.isRequired,
     backgroundColor: PropTypes.string,
