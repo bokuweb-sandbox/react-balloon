@@ -12,6 +12,7 @@ export default class Balloon extends Component {
     maxHeight: PropTypes.number,
     marker: PropTypes.object.isRequired,
     className: PropTypes.string,
+    children: PropTypes.any,
   };
 
   static defaultProps = {
@@ -54,8 +55,12 @@ export default class Balloon extends Component {
     const { box: { x, y }, pointer: { destination } } = this.state;
     const toBottomBoundary = this.refs.wrapper.clientHeight - y;
     const toRightBoundary = this.refs.wrapper.clientWidth - x;
-    const maxHeight = (toBottomBoundary < this.props.maxHeight || !this.props.maxHeight) ? toBottomBoundary : this.props.maxHeight;
-    const maxWidth = (toRightBoundary < this.props.maxWidth || !this.props.maxWidth) ? toRightBoundary : this.props.maxWidth;
+    const maxHeight = (toBottomBoundary < this.props.maxHeight || !this.props.maxHeight)
+            ? toBottomBoundary
+            : this.props.maxHeight;
+    const maxWidth = (toRightBoundary < this.props.maxWidth || !this.props.maxWidth)
+            ? toRightBoundary
+            : this.props.maxWidth;
     const box = { x, y, width, height };
     const pointerState = this.getPointer(box, destination);
     this.setState({
@@ -165,11 +170,12 @@ export default class Balloon extends Component {
   }
 
   render() {
-    const { start, backgroundColor, zIndex, minWidth, minHeight, marker, className } = this.props;
+    const { start, backgroundColor, zIndex, minWidth, minHeight,
+            marker, className, children } = this.props;
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
     return (
-      <div ref='wrapper' className={className} style={{ width: '100%', height: '100%', zIndex }}>
+      <div ref="wrapper" className={className} style={{ width: '100%', height: '100%', zIndex }}>
         <Resizable
           start={ start.box }
           customStyle={{ backgroundColor }}
@@ -182,14 +188,14 @@ export default class Balloon extends Component {
           minHeight={ minHeight }
           minWidth={ minWidth }
         >
-          { this.props.children }
+          { children }
         </Resizable>
         <Resizable
-           start={{ x: start.destination.x, y: start.destination.y }}
-           onDrag={ ::this.onPointerDrag }
-           bounds="parent"
-           isResizable={{ x: false, y: false, xy: false }}
-           zIndex={zIndex}
+          start={{ x: start.destination.x, y: start.destination.y }}
+          onDrag={ ::this.onPointerDrag }
+          bounds="parent"
+          isResizable={{ x: false, y: false, xy: false }}
+          zIndex={zIndex}
         >
           { marker }
         </Resizable>
