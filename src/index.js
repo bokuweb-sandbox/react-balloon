@@ -10,7 +10,7 @@ export default class Balloon extends Component {
     minHeight: PropTypes.number,
     maxWidth: PropTypes.number,
     maxHeight: PropTypes.number,
-    marker: PropTypes.object.isRequired,
+    marker: PropTypes.object,
     className: PropTypes.string,
     children: PropTypes.any,
     style: PropTypes.object,
@@ -29,7 +29,7 @@ export default class Balloon extends Component {
         y: 0,
       },
     },
-    marker: <div style={{ width: '20px', height: '20px', backgroundColor: '#ccc' }} />,
+    marker: <div style={{ width: '30px', height: '30px' }} />,
     backgroundColor: '#f5f5f5',
     zIndex: 100,
     className: '',
@@ -37,7 +37,8 @@ export default class Balloon extends Component {
 
   constructor(props) {
     super(props);
-    const { box, destination } = this.props.start;
+    const { box } = this.props.start;
+    let { destination } = this.props.start;
     const pointerState = this.getPointer(box, destination);
     this.state = {
       pointer: pointerState,
@@ -86,7 +87,7 @@ export default class Balloon extends Component {
 
   onPointerDrag(e, { position }) {
     const { box } = this.state;
-    const destination = { x: position.left, y: position.top };
+    const destination = { x: position.left + 15, y: position.top + 15 };
     const pointerState = this.getPointer(box, destination);
     this.setState({ pointer: pointerState });
   }
@@ -143,7 +144,7 @@ export default class Balloon extends Component {
       case 'bottom' :
         base = [
           { x: x + width * 0.25, y: y + height - 1 },
-          { x: x + width * 0.75, y: y + height - 1},
+          { x: x + width * 0.75, y: y + height - 1 },
         ];
         control = { x: x + width * 0.5, y: y + height };
         break;
@@ -172,14 +173,14 @@ export default class Balloon extends Component {
 
   render() {
     const { start, backgroundColor, zIndex, minWidth, minHeight,
-            marker, className, children, style } = this.props;
+            marker, className, children, style, } = this.props;
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
     return (
       <div ref="wrapper" className={className} style={{ width: '100%', height: '100%', zIndex }}>
         <Resizable
           start={ start.box }
-           customStyle={ Object.assign(style, { backgroundColor, border: `solid 1px ${backgroundColor}` }) }
+          customStyle={ Object.assign(style, { backgroundColor }) }
           onDrag={ ::this.onBoxDrag }
           onResize={ ::this.onBoxResize }
           bounds="parent"
@@ -189,10 +190,10 @@ export default class Balloon extends Component {
           minHeight={ minHeight }
           minWidth={ minWidth }
         >
-          { children }
+          <div style={{ padding: '1px', width: '100%', height: '100%' }}>{ children }</div>
         </Resizable>
         <Resizable
-          start={{ x: start.destination.x, y: start.destination.y }}
+          start={{ x: start.destination.x - 15, y: start.destination.y - 15 }}
           onDrag={ ::this.onPointerDrag }
           bounds="parent"
           isResizable={{ x: false, y: false, xy: false }}
@@ -202,9 +203,9 @@ export default class Balloon extends Component {
         </Resizable>
         <svg width="100%" height="100%" style={{}}>
           <path
-            d={ `M ${ base[0].x } ${ base[0].y }
+            d={ `M ${base[0].x } ${ base[0].y }
                  Q ${ control.x } ${ control.y } ${ destination.x } ${ destination.y }
-                 Q ${ control.x } ${ control.y } ${ base[1].x } ${ base[1].y }` }
+                 Q ${ control.x } ${ control.y } ${ base[1].x } ${ base[1].y}` }
             fill={ backgroundColor }
             stroke={ backgroundColor }
             strokeWidth={ 1 }

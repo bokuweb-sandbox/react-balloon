@@ -11,11 +11,10 @@ export default class Example extends Component {
     return (
       <Balloon
          start={{
-           box: { x: center.width - 180, y: center.height - 150, width: 300, height: 50 },
+           box: { x: center.width - 180, y: center.height - 150, width: 300, height: 80 },
            destination: { x: center.width , y: center.height },
          }}
          style={{ borderRadius: '5px', position: 'relative' }}
-         marker={ <i className="fa fa-github" style={{ fontSize: '48px', color: '#2C3E50' }}/> }
          backgroundColor="#ECF0F1"
          className={ 'animated bounceInUp' }
          minWidth={ 250 }
@@ -23,7 +22,7 @@ export default class Example extends Component {
          maxWidth={ 800 }
          maxHeight={ 400 }
       >
-        <p style={{ textAlign: 'center', verticalAlign: 'middle' }}>Hello, World!!</p>
+        <p style={{ textAlign: 'center' }}>Hello, World!!</p>
       </Balloon>
     );
   }
