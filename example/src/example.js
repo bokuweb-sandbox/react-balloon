@@ -7,7 +7,6 @@ export default class Example extends Component {
       width: document.body.clientWidth / 2,
       height: document.body.clientHeight / 2,
     };
-    console.log(document.body.clientHeight)
     return (
       <Balloon
          start={{
