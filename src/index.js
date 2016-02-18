@@ -180,7 +180,7 @@ export default class Balloon extends Component {
       <div ref="wrapper" className={className} style={{ width: '100%', height: '100%', zIndex }}>
         <Resizable
           start={ start.box }
-          customStyle={ Object.assign(style, { backgroundColor }) }
+          customStyle={ Object.assign({}, style, { backgroundColor }) }
           onDrag={ ::this.onBoxDrag }
           onResize={ ::this.onBoxResize }
           bounds="parent"
