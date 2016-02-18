@@ -10,18 +10,18 @@ export default class Example extends Component {
     return (
       <Balloon
          start={{
-           box: { x: center.width - 180, y: center.height - 150, width: 300, height: 80 },
+           box: { x: center.width - 180, y: center.height - 150, width: 300, height: 105 },
            destination: { x: center.width , y: center.height },
          }}
          style={{ borderRadius: '5px', position: 'relative' }}
          backgroundColor="#ECF0F1"
          className={ 'animated bounceInUp' }
          minWidth={ 250 }
-         minHeight={ 40 }
+         minHeight={ 105 }
          maxWidth={ 800 }
          maxHeight={ 400 }
       >
-        <p style={{ textAlign: 'center' }}>Hello, World!!</p>
+        <p style={{ textAlign: 'center', fontSize: '28px' }}>Hello, World!!</p>
       </Balloon>
     );
   }
