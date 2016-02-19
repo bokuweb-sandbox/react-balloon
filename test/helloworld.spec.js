@@ -5,14 +5,36 @@ import Balloon from '../src/index';
 
 describe('<Balloon/>', () => {
   it('should have default properties', () => {
-    const balloon = mount(<Balloon>aa</Balloon>);
+    const balloon = mount(<Balloon />);
     assert.equal(balloon.props().zIndex, 100);
+    assert.equal(balloon.props().className, '');
+    assert.equal(balloon.props().backgroundColor, '#f5f5f5');
+    assert.equal(balloon.props().minWidth, undefined);
+    assert.equal(balloon.props().minHeight, undefined);
+    assert.equal(balloon.props().maxWidth, undefined);
+    assert.equal(balloon.props().maxHeight, undefined);
+    assert.deepEqual(balloon.props().style, {});
+    assert.deepEqual(balloon.props().start, {
+      box: {
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+      },
+      destination: {
+        x: 0,
+        y: 0,
+      },
+    });
   });
 
-  //it('should have default properties', () => {
-  //  const wrapper = shallow(<Hello />);
-  //  assert.equal(wrapper.type(), 'h1');
-  //});
+  it('Should root element have expected element and styles', () => {
+    const balloon = shallow(<Balloon />);
+    const expectedStyles = {width: '100%', height: '100%', zIndex: 100};
+    assert.equal(balloon.type(), 'div');
+    assert.deepEqual(balloon.prop('style'), expectedStyles);
+  });
+
   //it('Shoud have style with color red', () => {
   //  const wrapper = shallow(<Hello />);
   //  const expectedStyles = {

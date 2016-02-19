@@ -33,6 +33,7 @@ export default class Balloon extends Component {
     backgroundColor: '#f5f5f5',
     zIndex: 100,
     className: '',
+    style: {},
   };
 
   constructor(props) {
