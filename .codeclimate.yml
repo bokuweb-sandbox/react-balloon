@@ -4,7 +4,6 @@ languages:
   PHP: true
   Python: true
 exclude_paths:
-- "example/animate.css"
-- "example/src/example.js
-- "example/src/index.js
-- "karma.conf.js
+- example/*
+- example/**/*
+- karma.conf.js
