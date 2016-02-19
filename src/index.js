@@ -38,7 +38,7 @@ export default class Balloon extends Component {
   constructor(props) {
     super(props);
     const { box } = this.props.start;
-    let { destination } = this.props.start;
+    const { destination } = this.props.start;
     const pointerState = this.getPointer(box, destination);
     this.state = {
       pointer: pointerState,
@@ -173,14 +173,14 @@ export default class Balloon extends Component {
 
   render() {
     const { start, backgroundColor, zIndex, minWidth, minHeight,
-            marker, className, children, style, } = this.props;
+            marker, className, children, style } = this.props;
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
     return (
       <div ref="wrapper" className={className} style={{ width: '100%', height: '100%', zIndex }}>
         <Resizable
           start={ start.box }
-          customStyle={ Object.assign(style, { backgroundColor }) }
+          customStyle={ Object.assign({}, style, { backgroundColor }) }
           onDrag={ ::this.onBoxDrag }
           onResize={ ::this.onBoxResize }
           bounds="parent"
