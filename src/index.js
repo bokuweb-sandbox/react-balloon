@@ -202,7 +202,7 @@ export default class Balloon extends Component {
         >
           { marker }
         </Resizable>
-        <svg width="100%" height="100%" style={{}}>
+        <svg width="100%" height="100%" style={{ zIndex }}>
           <path
             d={ `M ${base[0].x } ${ base[0].y }
                  Q ${ control.x } ${ control.y } ${ destination.x } ${ destination.y }
