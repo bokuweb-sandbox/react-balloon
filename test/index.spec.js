@@ -1,8 +1,17 @@
 import React from 'react';
 import { shallow, mount } from 'enzyme';
 import assert from 'power-assert';
+import sinon from 'sinon';
 import ResizableAndMovable from 'react-resizable-and-movable';
 import Balloon from '../src/index';
+
+const mouseMove = (node, x, y) => {
+  const event = document.createEvent('MouseEvents');
+  event.initMouseEvent('mousemove', true, true, window,
+                       0, 0, 0, x, y, false, false, false, false, 0, null);
+  document.dispatchEvent(event);
+  return event;
+};
 
 describe('<Balloon/>', () => {
   it('should have default properties', () => {
@@ -174,5 +183,31 @@ describe('<Balloon/>', () => {
     assert.equal(path.prop('stroke'), '#000000');
     assert.equal(path.prop('fill'), '#000000');
   });
+
+  it('should onPointerDragxxx called, when maker dragged', () => {
+    const spy = sinon.spy(Balloon.prototype, 'onPointerDrag');
+    const onPointerDragStart = sinon.spy();
+    const onPointerDragStop = sinon.spy();
+    const onPointerDrag = sinon.spy();
+    const balloon = mount(
+      <Balloon
+         start={{ box: { x: 100, y: 120, width: 140, height: 160 }, destination: { x:100, y: 300 } }}
+         onPointerDrag={onPointerDrag}
+         onPointerDragStop={onPointerDragStop}
+         onPointerDragStart={onPointerDragStart}
+      />);
+    const marker = balloon.children().at(1).children();
+    marker.find('div').at(0).simulate('mousedown');
+    // TODO: Not simulated properly
+    mouseMove(marker.find('div').get(0), 100, 100);
+    marker.find('div').at(0).simulate('mouseup');
+    assert(Balloon.prototype.onPointerDrag.calledOnce);
+    assert(onPointerDragStart.calledOnce);
+    assert(onPointerDragStop.calledOnce);
+    assert.deepEqual(onPointerDrag.getCall(0).args[0], {left: 85, top: 285});
+    // FIXME: dragStop return NaN
+    //assert.deepEqual(onPointerDragStop.getCall(0).args[0], {left: 85, top: 285});
+  });
 });
+
 

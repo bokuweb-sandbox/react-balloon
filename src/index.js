@@ -14,6 +14,15 @@ export default class Balloon extends Component {
     className: PropTypes.string,
     children: PropTypes.any,
     style: PropTypes.object,
+    onBoxDragStart: PropTypes.func,
+    onBoxDrag: PropTypes.func,
+    onBoxDragStop: PropTypes.func,
+    onBoxResizeStart: PropTypes.func,
+    onBoxResize: PropTypes.func,
+    onBoxResizeStop: PropTypes.func,
+    onPointerDragStart: PropTypes.func,
+    onPointerDrag: PropTypes.func,
+    onPointerDragStop: PropTypes.func,
   };
 
   static defaultProps = {
@@ -34,6 +43,15 @@ export default class Balloon extends Component {
     zIndex: 100,
     className: '',
     style: {},
+    onBoxDragStart: () => null,
+    onBoxDrag: () => null,
+    onBoxDragStop: () => null,
+    onBoxResizeStart: () => null,
+    onBoxResize: () => null,
+    onBoxResizeStop: () => null,
+    onPointerDragStart: () => null,
+    onPointerDrag: () => null,
+    onPointerDragStop: () => null,
   };
 
   constructor(props) {
@@ -91,6 +109,11 @@ export default class Balloon extends Component {
     const destination = { x: position.left + 15, y: position.top + 15 };
     const pointerState = this.getPointer(box, destination);
     this.setState({ pointer: pointerState });
+    this.props.onPointerDrag(position);
+  }
+
+  onPointerDragStop(e, { position }) {
+    this.props.onPointerDragStop(position);    
   }
 
   getBoxCenter(box) {
@@ -174,7 +197,8 @@ export default class Balloon extends Component {
 
   render() {
     const { start, backgroundColor, zIndex, minWidth, minHeight,
-            marker, className, children, style } = this.props;
+            marker, className, children, style, onPointerDragStart,
+            onPointerDragStop, } = this.props;
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
     return (
@@ -195,7 +219,9 @@ export default class Balloon extends Component {
         </Resizable>
         <Resizable
           start={{ x: start.destination.x - 15, y: start.destination.y - 15 }}
+          onDragStart={ onPointerDragStart }
           onDrag={ ::this.onPointerDrag }
+          onDragStop={ ::this.onPointerDragStop }
           bounds="parent"
           isResizable={{ x: false, y: false, xy: false }}
           zIndex={zIndex}
