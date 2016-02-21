@@ -1,9 +1,17 @@
-# README
+# react-balloon
 
 react balloon conponent.
 
 [![Build Status](https://travis-ci.org/bokuweb/react-balloon.svg?branch=master)](https://travis-ci.org/bokuweb/react-balloon)
 [![Code Climate](https://codeclimate.com/github/bokuweb/react-balloon/badges/gpa.svg)](https://codeclimate.com/github/bokuweb/react-balloon)
+
+## screenshot
+
+![screenshot](https://github.com/bokuweb/react-balloon/blob/master/screenshot.gif?raw=true)
+
+## DEMO
+
+http://bokuweb.github.io/react-balloon/
 
 ## License
 
