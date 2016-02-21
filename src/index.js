@@ -113,7 +113,7 @@ export default class Balloon extends Component {
   }
 
   onPointerDragStop(e, { position }) {
-    this.props.onPointerDragStop(position);    
+    this.props.onPointerDragStop(position);
   }
 
   getBoxCenter(box) {
@@ -197,8 +197,7 @@ export default class Balloon extends Component {
 
   render() {
     const { start, backgroundColor, zIndex, minWidth, minHeight,
-            marker, className, children, style, onPointerDragStart,
-            onPointerDragStop, } = this.props;
+            marker, className, children, style, onPointerDragStart } = this.props;
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
     return (
