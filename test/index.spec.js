@@ -208,6 +208,29 @@ describe('<Balloon/>', () => {
     // FIXME: dragStop return NaN
     //assert.deepEqual(onPointerDragStop.getCall(0).args[0], {left: 85, top: 285});
   });
+
+  it('should onBoxDragxxx called, when box dragged', () => {
+    const spy = sinon.spy(Balloon.prototype, 'onBoxDrag');
+    const onBoxDragStart = sinon.spy();
+    const onBoxDragStop = sinon.spy();
+    const onBoxDrag = sinon.spy();
+    const balloon = mount(
+      <Balloon
+         start={{ box: { x: 100, y: 120, width: 140, height: 160 }, destination: { x:100, y: 300 } }}
+         onBoxDrag={onBoxDrag}
+         onBoxDragStop={onBoxDragStop}
+         onBoxDragStart={onBoxDragStart}
+      />);
+    const box = balloon.children().at(0).children();
+    box.find('div').at(0).simulate('mousedown');
+    // TODO: Not simulated properly
+    mouseMove(box.find('div').get(0), 100, 100);
+    box.find('div').at(0).simulate('mouseup');
+    assert(Balloon.prototype.onBoxDrag.calledOnce);
+    assert(onBoxDragStart.calledOnce);
+    assert(onBoxDragStop.calledOnce);
+    assert.deepEqual(onBoxDrag.getCall(0).args[0], { left: 100, top: 120 });
+  });
 });
 
 

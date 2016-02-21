@@ -20,6 +20,7 @@ export default class Example extends Component {
          minHeight={ 105 }
          maxWidth={ 800 }
          maxHeight={ 400 }
+         onPointerDragStop={(position) => console.dir(position)}
       >
         <p style={{ textAlign: 'center', fontSize: '28px' }}>Hello, World!!</p>
       </Balloon>

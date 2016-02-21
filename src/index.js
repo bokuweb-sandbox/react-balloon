@@ -102,6 +102,11 @@ export default class Balloon extends Component {
       pointer: pointerState,
       box,
     });
+    this.props.onBoxDrag(position);
+  }
+
+  onBoxDragStop(e, { position }) {
+    this.props.onBoxDragStop(position);
   }
 
   onPointerDrag(e, { position }) {
@@ -197,7 +202,8 @@ export default class Balloon extends Component {
 
   render() {
     const { start, backgroundColor, zIndex, minWidth, minHeight,
-            marker, className, children, style, onPointerDragStart } = this.props;
+            marker, className, children, style, onPointerDragStart,
+            onBoxDragStart } = this.props;
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
     return (
@@ -205,7 +211,9 @@ export default class Balloon extends Component {
         <Resizable
           start={ start.box }
           customStyle={ Object.assign({}, style, { backgroundColor }) }
+          onDragStart={ onBoxDragStart }
           onDrag={ ::this.onBoxDrag }
+          onDragStop={ ::this.onBoxDragStop }
           onResize={ ::this.onBoxResize }
           bounds="parent"
           zIndex={ zIndex }
