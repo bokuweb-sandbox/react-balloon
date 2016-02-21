@@ -13,7 +13,7 @@ export default class Example extends Component {
            box: { x: center.width - 180, y: center.height - 150, width: 300, height: 105 },
            destination: { x: center.width , y: center.height },
          }}
-         style={{ borderRadius: '5px' }}
+         style={{ borderRadius: '5px', position: 'relative' }}
          backgroundColor="#ECF0F1"
          className={ 'animated bounceInUp' }
          minWidth={ 250 }
