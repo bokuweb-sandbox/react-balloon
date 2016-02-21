@@ -11,6 +11,7 @@
     "build:lib": "browserify --extension=js -o lib/index.js src/index.js",
     "build:example": "browserify --extension=js -o example/dist/bundle.js example/src/index.js",
     "test": "karma start",
+    "test:watch": "karma start --auto-watch --no-single-run",
     "compile": "babel -d lib/ src/",
     "prepublish": "npm run compile",
     "lint": "eslint src"
@@ -42,6 +43,8 @@
     "eslint-config-airbnb": "^5.0.0",
     "eslint-plugin-react": "^3.16.1",
     "espower-babel": "^3.3.0",
+    "expect": "^1.14.0",
+    "expect-jsx": "^2.3.0",
     "karma": "^0.13.19",
     "karma-babel-preprocessor": "^6.0.1",
     "karma-browserify": "^4.4.0",
