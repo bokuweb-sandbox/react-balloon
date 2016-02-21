@@ -13,6 +13,129 @@ react balloon conponent.
 
 http://bokuweb.github.io/react-balloon/
 
+## Installation
+
+```sh
+npm i react-balloon
+```
+
+## Overview
+
+``` javascript
+      <Balloon
+         start={{
+           box: { x: 100, y: 100, width: 300, height: 105 },
+           destination: { x: 400 , y: 400 },
+         }}
+         style={{ borderRadius: '5px' }}
+         backgroundColor="#ECF0F1"
+      >
+        Hello, World!!
+      </Balloon>
+```
+
+## Properties
+
+#### start {box: {x: number, y:number, width:number, height:number}, destination: {x: number, y:number}}
+
+Specifies the `x` ,`y`, `width` and `height` that the component should start at.
+`destination` sepecifies balloon poinetr position.
+
+#### minWidth {number}
+
+Specifies the minimum width of the Box.
+This is generally not necessary to use.
+
+#### minHeight {number}
+
+Specifies the minimum height of the Box.
+This is generally not necessary to use.
+
+#### maxWidth {number}
+
+Specifies the maximum width of the Box.
+This is generally not necessary to use.
+
+#### maxHeight {number}
+
+Specifies the maximum height of the component.
+This is generally not necessary to use.
+
+#### customClass {string}
+
+The css class set on the component.
+This is generally not necessary to use.
+
+#### style {object}
+
+The css style set on the component.
+This is generally not necessary to use.
+
+#### onBoxResizeStart {func}
+
+Callback called on resize start.   
+
+#### onBoxResize {func}
+
+Callback called on resizing.   
+Receives the box size `{width: number, height: number}` as argument.
+
+#### onBoxResizeStop {func}
+
+Callback called on resize stop.
+Receives the box size `{width: number, height: number}` as argument.
+
+#### onBoxDrageStart {func}
+
+Callback called on box dragging start.   
+
+#### onBoxDrag {func}
+
+Callback called on box resizing.   
+`onBoxDrag` called with the following parameters:
+
+``` javascript
+{ left: number, top: number }
+```
+
+#### onBoxDragStop {func}
+
+Callback called on box dragging stop.
+`onBoxDragStop` called with the following parameters:
+
+``` javascript
+{ left: number, top: number }
+```
+
+#### onPointerDrageStart {func}
+
+Callback called on pointer dragging start.   
+
+#### onPointerDrag {func}
+
+Callback called on pointer resizing.   
+`onPointerDrag` called with the following parameters:
+
+``` javascript
+{ left: number, top: number }
+```
+
+#### onPointerDragStop {func}
+
+Callback called on pointer dragging stop.
+`onPointerDragStop` called with the following parameters:
+
+``` javascript
+{ left: number, top: number }
+```
+
+
+## Test
+
+``` sh
+npm t
+```
+
 ## License
 
 The MIT License (MIT)
