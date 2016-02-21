@@ -21,6 +21,8 @@ export default class Example extends Component {
          maxWidth={ 800 }
          maxHeight={ 400 }
          onPointerDragStop={(position) => console.dir(position)}
+         onBoxResize={size => console.log(size)}
+         onBoxResizeStop={size => console.log(size)}
       >
         <p style={{ textAlign: 'center', fontSize: '28px' }}>Hello, World!!</p>
       </Balloon>

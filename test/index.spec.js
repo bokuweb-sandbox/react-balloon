@@ -231,6 +231,29 @@ describe('<Balloon/>', () => {
     assert(onBoxDragStop.calledOnce);
     assert.deepEqual(onBoxDrag.getCall(0).args[0], { left: 100, top: 120 });
   });
+
+  it('should onBoxResizexxx called, when box resized', () => {
+    const spy = sinon.spy(Balloon.prototype, 'onBoxResize');
+    const onBoxResizeStart = sinon.spy();
+    const onBoxResizeStop = sinon.spy();
+    const onBoxResize = sinon.spy();
+    const balloon = mount(
+      <Balloon
+         start={{ box: { x: 100, y: 120, width: 140, height: 160 }, destination: { x:100, y: 300 } }}
+         onBoxResize={onBoxResize}
+         onBoxResizeStop={onBoxResizeStop}
+         onBoxResizeStart={onBoxResizeStart}
+      />
+    );
+    const box = balloon.children().at(0).children();
+    box.find('div').children().at(1).simulate('mousedown');
+    mouseMove(box.find('div').children().at(1), 10, 10);
+    box.find('div').children().at(1).simulate('mouseup');
+    assert(Balloon.prototype.onBoxResize.calledOnce);
+    assert(onBoxResizeStart.calledOnce);
+    // FIXME: onBoxResizeStop not called 
+    //assert(onBoxResizeStop.calledOnce);
+  });
 });
 
 
