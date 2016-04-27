@@ -134,7 +134,7 @@ export default class Balloon extends Component {
     if (degree >= -45 && degree < 45) return 'right';
     if (degree >= 45 && degree < 135) return 'top';
     if ((degree >= 135 && degree <= 180) || (degree >= -180 && degree < -135)) return 'left';
-    if (degree >= -135 && degree < -45) return 'bottom';
+    return 'bottom';
   }
 
   getDegree(origin, destination) {
@@ -211,7 +211,13 @@ export default class Balloon extends Component {
       <div
         ref="wrapper"
         className={className}
-        style={{ width: '100%', height: '100%', zIndex, position: 'absolute', pointerEvents: 'none' }}
+        style={{
+          width: '100%',
+          height: '100%',
+          zIndex,
+          position: 'absolute',
+          pointerEvents: 'none',
+        }}
       >
         <Resizable
           start={ start.box }
@@ -247,9 +253,9 @@ export default class Balloon extends Component {
         </Resizable>
         <svg width="100%" height="100%" style={{ zIndex, pointerEvents: 'none' }}>
           <path
-            d={ `M ${base[0].x } ${ base[0].y }
-                 Q ${ control.x } ${ control.y } ${ destination.x } ${ destination.y }
-                 Q ${ control.x } ${ control.y } ${ base[1].x } ${ base[1].y}` }
+            d={ `M ${base[0].x} ${base[0].y}
+                 Q ${control.x} ${control.y} ${destination.x} ${destination.y}
+                 Q ${control.x} ${control.y} ${base[1].x} ${base[1].y}`}
             fill={ backgroundColor }
             stroke={ backgroundColor }
             strokeWidth={ 1 }
