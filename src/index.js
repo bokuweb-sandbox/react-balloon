@@ -72,7 +72,7 @@ export default class Balloon extends Component {
     };
   }
 
-  onBoxResize({ width, height }) {
+  onBoxResize(_, { width, height }) {
     const { box: { x, y }, pointer: { destination } } = this.state;
     const toBottomBoundary = this.refs.wrapper.clientHeight - y;
     const toRightBoundary = this.refs.wrapper.clientWidth - x;
@@ -208,10 +208,14 @@ export default class Balloon extends Component {
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
     return (
-      <div ref="wrapper" className={className} style={{ width: '100%', height: '100%', zIndex }}>
+      <div
+        ref="wrapper"
+        className={className}
+        style={{ width: '100%', height: '100%', zIndex, position: 'absolute', pointerEvents: 'none' }}
+      >
         <Resizable
           start={ start.box }
-          customStyle={ Object.assign({}, style, { backgroundColor }) }
+          customStyle={ Object.assign({}, style, { backgroundColor, pointerEvents: 'auto' }) }
           onDragStart={ onBoxDragStart }
           onDrag={ ::this.onBoxDrag }
           onDragStop={ ::this.onBoxDragStop }
@@ -225,10 +229,13 @@ export default class Balloon extends Component {
           minHeight={ minHeight }
           minWidth={ minWidth }
         >
-          <div style={{ padding: '1px', width: '100%', height: '100%' }}>{ children }</div>
+          <div style={{ padding: '0px', width: '100%', height: '100%', pointerEvents: 'none' }}>
+            { children }
+          </div>
         </Resizable>
         <Resizable
           start={{ x: start.destination.x - 15, y: start.destination.y - 15 }}
+          customStyle={ Object.assign({}, { pointerEvents: 'auto' }) }
           onDragStart={ onPointerDragStart }
           onDrag={ ::this.onPointerDrag }
           onDragStop={ ::this.onPointerDragStop }
@@ -238,7 +245,7 @@ export default class Balloon extends Component {
         >
           { marker }
         </Resizable>
-        <svg width="100%" height="100%" style={{ zIndex }}>
+        <svg width="100%" height="100%" style={{ zIndex, pointerEvents: 'none' }}>
           <path
             d={ `M ${base[0].x } ${ base[0].y }
                  Q ${ control.x } ${ control.y } ${ destination.x } ${ destination.y }
@@ -252,3 +259,4 @@ export default class Balloon extends Component {
     );
   }
 }
+
