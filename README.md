@@ -2,7 +2,6 @@
 
 react balloon conponent.
 
-[![Build Status](https://travis-ci.org/bokuweb/react-balloon.svg?branch=master)](https://travis-ci.org/bokuweb/react-balloon)
 [![Code Climate](https://codeclimate.com/github/bokuweb/react-balloon/badges/gpa.svg)](https://codeclimate.com/github/bokuweb/react-balloon)
 
 ## screenshot
@@ -23,10 +22,8 @@ npm i react-balloon
 
 ``` javascript
       <Balloon
-         start={{
-           box: { x: 100, y: 100, width: 300, height: 105 },
-           destination: { x: 400 , y: 400 },
-         }}
+         box={{ x: 100, y: 100, width: 300, height: 105 }},
+         pointer={{ x: 400 , y: 400 }},
          style={{ borderRadius: '5px' }}
          backgroundColor="#ECF0F1"
       >
@@ -36,10 +33,13 @@ npm i react-balloon
 
 ## Properties
 
-#### start {box: {x: number, y:number, width:number, height:number}, destination: {x: number, y:number}}
+#### box: {x: number, y:number, width:number, height:number}
 
 Specifies the `x` ,`y`, `width` and `height` that the component should start at.
-`destination` sepecifies balloon poinetr position.
+
+#### pointer: {x: number, y:number}}
+
+`pointer` sepecifies balloon poinetr position.
 
 #### minWidth {number}
 

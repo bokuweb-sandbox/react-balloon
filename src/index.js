@@ -3,7 +3,8 @@ import Resizable from 'react-resizable-and-movable';
 
 export default class Balloon extends Component {
   static propTypes = {
-    start: PropTypes.object.isRequired,
+    box: PropTypes.object,
+    pointer: PropTypes.object,
     backgroundColor: PropTypes.string,
     zIndex: PropTypes.number,
     minWidth: PropTypes.number,
@@ -26,17 +27,15 @@ export default class Balloon extends Component {
   };
 
   static defaultProps = {
-    start: {
-      box: {
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 100,
-      },
-      destination: {
-        x: 0,
-        y: 0,
-      },
+    box: {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+    },
+    pointer: {
+      x: 0,
+      y: 0,
     },
     marker: <div style={{ width: '30px', height: '30px' }} />,
     backgroundColor: '#f5f5f5',
@@ -56,9 +55,8 @@ export default class Balloon extends Component {
 
   constructor(props) {
     super(props);
-    const { box } = this.props.start;
-    const { destination } = this.props.start;
-    const pointerState = this.getPointer(box, destination);
+    const { box, pointer } = this.props;
+    const pointerState = this.getPointer(box, pointer);
     this.state = {
       pointer: pointerState,
       box: {
@@ -134,7 +132,7 @@ export default class Balloon extends Component {
     if (degree >= -45 && degree < 45) return 'right';
     if (degree >= 45 && degree < 135) return 'top';
     if ((degree >= 135 && degree <= 180) || (degree >= -180 && degree < -135)) return 'left';
-    if (degree >= -135 && degree < -45) return 'bottom';
+    return 'bottom';
   }
 
   getDegree(origin, destination) {
@@ -202,7 +200,7 @@ export default class Balloon extends Component {
   }
 
   render() {
-    const { start, backgroundColor, zIndex, minWidth, minHeight,
+    const { box, pointer, backgroundColor, zIndex, minWidth, minHeight,
             marker, className, children, style, onPointerDragStart,
             onBoxDragStart, onBoxResizeStart, onBoxResizeStop } = this.props;
     const { base, destination, control } = this.state.pointer;
@@ -211,11 +209,35 @@ export default class Balloon extends Component {
       <div
         ref="wrapper"
         className={className}
-        style={{ width: '100%', height: '100%', zIndex, position: 'absolute', pointerEvents: 'none' }}
+        style={{
+          width: '100%',
+          height: '100%',
+          zIndex,
+          position: 'absolute',
+          pointerEvents: 'none',
+        }}
       >
         <Resizable
-          start={ start.box }
-          customStyle={ Object.assign({}, style, { backgroundColor, pointerEvents: 'auto' }) }
+          x={ box.x }
+          y={ box.y }
+          width={ box.width }
+          height={ box.height }
+          style={{
+            ...style,
+            backgroundColor,
+            pointerEvents: 'auto',
+            position: 'absolute',
+          }}
+          isResizable={{
+            top: false,
+            right: true,
+            bottom: true,
+            left: false,
+            topRight: false,
+            bottomRight: true,
+            topLeft: false,
+            bottomLeft: false,
+          }}
           onDragStart={ onBoxDragStart }
           onDrag={ ::this.onBoxDrag }
           onDragStop={ ::this.onBoxDragStop }
@@ -234,22 +256,34 @@ export default class Balloon extends Component {
           </div>
         </Resizable>
         <Resizable
-          start={{ x: start.destination.x - 15, y: start.destination.y - 15 }}
-          customStyle={ Object.assign({}, { pointerEvents: 'auto' }) }
+          x={pointer.x}
+          y={pointer.y - 15}
+          width={10}
+          height={10}
+          style={ Object.assign({}, { pointerEvents: 'auto' }) }
           onDragStart={ onPointerDragStart }
           onDrag={ ::this.onPointerDrag }
           onDragStop={ ::this.onPointerDragStop }
           bounds="parent"
-          isResizable={{ x: false, y: false, xy: false }}
+          isResizable={{
+            top: false,
+            right: false,
+            bottom: false,
+            left: false,
+            topRight: false,
+            bottomRight: false,
+            topLeft: false,
+            bottomLeft: false,
+          }}
           zIndex={zIndex}
         >
           { marker }
         </Resizable>
         <svg width="100%" height="100%" style={{ zIndex, pointerEvents: 'none' }}>
           <path
-            d={ `M ${base[0].x } ${ base[0].y }
-                 Q ${ control.x } ${ control.y } ${ destination.x } ${ destination.y }
-                 Q ${ control.x } ${ control.y } ${ base[1].x } ${ base[1].y}` }
+            d={ `M ${base[0].x} ${base[0].y}
+                 Q ${control.x} ${control.y} ${destination.x} ${destination.y}
+                 Q ${control.x} ${control.y} ${base[1].x} ${base[1].y}`}
             fill={ backgroundColor }
             stroke={ backgroundColor }
             strokeWidth={ 1 }
