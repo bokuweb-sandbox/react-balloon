@@ -9,10 +9,8 @@ export default class Example extends Component {
     };
     return (
       <Balloon
-         start={{
-           box: { x: center.width - 180, y: center.height - 150, width: 300, height: 105 },
-           destination: { x: center.width , y: center.height },
-         }}
+         box={{ x: center.width - 180, y: center.height - 150, width: 300, height: 105 }}
+         pointer={{ x: center.width , y: center.height }}
          style={{ borderRadius: '5px' }}
          backgroundColor="#ECF0F1"
          className={ 'animated bounceInUp' }

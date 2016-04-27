@@ -3,7 +3,8 @@ import Resizable from 'react-resizable-and-movable';
 
 export default class Balloon extends Component {
   static propTypes = {
-    start: PropTypes.object.isRequired,
+    box: PropTypes.object,
+    pointer: PropTypes.object,
     backgroundColor: PropTypes.string,
     zIndex: PropTypes.number,
     minWidth: PropTypes.number,
@@ -26,17 +27,15 @@ export default class Balloon extends Component {
   };
 
   static defaultProps = {
-    start: {
-      box: {
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 100,
-      },
-      destination: {
-        x: 0,
-        y: 0,
-      },
+    box: {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+    },
+    pointer: {
+      x: 0,
+      y: 0,
     },
     marker: <div style={{ width: '30px', height: '30px' }} />,
     backgroundColor: '#f5f5f5',
@@ -56,9 +55,8 @@ export default class Balloon extends Component {
 
   constructor(props) {
     super(props);
-    const { box } = this.props.start;
-    const { destination } = this.props.start;
-    const pointerState = this.getPointer(box, destination);
+    const { box, pointer } = this.props;
+    const pointerState = this.getPointer(box, pointer);
     this.state = {
       pointer: pointerState,
       box: {
@@ -202,7 +200,7 @@ export default class Balloon extends Component {
   }
 
   render() {
-    const { start, backgroundColor, zIndex, minWidth, minHeight,
+    const { box, pointer, backgroundColor, zIndex, minWidth, minHeight,
             marker, className, children, style, onPointerDragStart,
             onBoxDragStart, onBoxResizeStart, onBoxResizeStop } = this.props;
     const { base, destination, control } = this.state.pointer;
@@ -220,10 +218,10 @@ export default class Balloon extends Component {
         }}
       >
         <Resizable
-          x={ start.box.x }
-          y={ start.box.y }
-          width={ start.box.width }
-          height={ start.box.height }
+          x={ box.x }
+          y={ box.y }
+          width={ box.width }
+          height={ box.height }
           style={{
             ...style,
             backgroundColor,
@@ -248,8 +246,8 @@ export default class Balloon extends Component {
           </div>
         </Resizable>
         <Resizable
-          x={start.destination.x}
-          y={start.destination.y - 15}
+          x={pointer.x}
+          y={pointer.y - 15}
           width={10}
           height={10}
           style={ Object.assign({}, { pointerEvents: 'auto' }) }
