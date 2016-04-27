@@ -220,8 +220,16 @@ export default class Balloon extends Component {
         }}
       >
         <Resizable
-          start={ start.box }
-          customStyle={ Object.assign({}, style, { backgroundColor, pointerEvents: 'auto' }) }
+          x={ start.box.x }
+          y={ start.box.y }
+          width={ start.box.width }
+          height={ start.box.height }
+          style={{
+            ...style,
+            backgroundColor,
+            pointerEvents: 'auto',
+            position: 'absolute',
+          }}
           onDragStart={ onBoxDragStart }
           onDrag={ ::this.onBoxDrag }
           onDragStop={ ::this.onBoxDragStop }
@@ -240,13 +248,25 @@ export default class Balloon extends Component {
           </div>
         </Resizable>
         <Resizable
-          start={{ x: start.destination.x - 15, y: start.destination.y - 15 }}
-          customStyle={ Object.assign({}, { pointerEvents: 'auto' }) }
+          x={start.destination.x}
+          y={start.destination.y - 15}
+          width={10}
+          height={10}
+          style={ Object.assign({}, { pointerEvents: 'auto' }) }
           onDragStart={ onPointerDragStart }
           onDrag={ ::this.onPointerDrag }
           onDragStop={ ::this.onPointerDragStop }
           bounds="parent"
-          isResizable={{ x: false, y: false, xy: false }}
+          isResizable={{
+            top: false,
+            right: false,
+            bottom: false,
+            left: false,
+            topRight: false,
+            bottomRight: false,
+            topLeft: false,
+            bottomLeft: false,
+          }}
           zIndex={zIndex}
         >
           { marker }
