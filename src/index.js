@@ -228,6 +228,16 @@ export default class Balloon extends Component {
             pointerEvents: 'auto',
             position: 'absolute',
           }}
+          isResizable={{
+            top: false,
+            right: true,
+            bottom: true,
+            left: false,
+            topRight: false,
+            bottomRight: true,
+            topLeft: false,
+            bottomLeft: false,
+          }}
           onDragStart={ onBoxDragStart }
           onDrag={ ::this.onBoxDrag }
           onDragStop={ ::this.onBoxDragStop }
