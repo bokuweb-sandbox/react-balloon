@@ -21,8 +21,9 @@ export default class Example extends Component {
          onPointerDragStop={(position) => console.dir(position)}
          onBoxResize={size => console.log(size)}
          onBoxResizeStop={size => console.log(size)}
+         disable={false}
       >
-        <p style={{ textAlign: 'center', fontSize: '28px' }}>Hello, World!!</p>
+        <p style={{ textAlign: 'center', fontSize: '28px' }}>Hello, World!!!</p>
       </Balloon>
     );
   }
