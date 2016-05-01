@@ -226,11 +226,11 @@ export default class Balloon extends Component {
           width={ box.width }
           height={ box.height }
           style={{
+            ...cursor,
             ...style,
             backgroundColor,
             pointerEvents: 'auto',
             position: 'absolute',
-            ...cursor,
           }}
           moveAxis={ this.props.disable ? 'none' : 'both' }
           isResizable={
@@ -277,7 +277,7 @@ export default class Balloon extends Component {
           y={pointer.y - 15}
           width={10}
           height={10}
-          style={ Object.assign({}, { pointerEvents: 'auto' }) }
+          style={ Object.assign({}, { pointerEvents: 'auto', ...cursor }) }
           onDragStart={ onPointerDragStart }
           onDrag={ ::this.onPointerDrag }
           onDragStop={ ::this.onPointerDragStop }
