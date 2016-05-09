@@ -26,6 +26,7 @@ export default class Balloon extends Component {
     onPointerDragStop: PropTypes.func,
     disable: PropTypes.bool,
     onClick: PropTypes.func,
+    strokeColor: PropTypes.string,
   };
 
   static defaultProps = {
@@ -41,6 +42,7 @@ export default class Balloon extends Component {
     },
     marker: <div style={{ width: '30px', height: '30px' }} />,
     backgroundColor: '#f5f5f5',
+    strokeColor: '#f5f5f5',
     zIndex: 100,
     className: '',
     style: {},
@@ -206,7 +208,7 @@ export default class Balloon extends Component {
   render() {
     const { box, pointer, backgroundColor, zIndex, minWidth, minHeight,
             marker, className, children, style, onPointerDragStart,
-            onBoxDragStart, onBoxResizeStart, onBoxResizeStop, disable } = this.props;
+            onBoxDragStart, onBoxResizeStart, onBoxResizeStop, disable, strokeColor } = this.props;
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
     const cursor = disable ? { cursor: 'default' } : {};
@@ -305,7 +307,7 @@ export default class Balloon extends Component {
                  Q ${control.x} ${control.y} ${destination.x} ${destination.y}
                  Q ${control.x} ${control.y} ${base[1].x} ${base[1].y}`}
             fill={ backgroundColor }
-            stroke={ backgroundColor }
+            stroke={ strokeColor }
             strokeWidth={ 1 }
           />
         </svg>
