@@ -25,6 +25,7 @@ export default class Balloon extends Component {
     onPointerDrag: PropTypes.func,
     onPointerDragStop: PropTypes.func,
     disable: PropTypes.bool,
+    onClick: PropTypes.func,
   };
 
   static defaultProps = {
@@ -53,6 +54,7 @@ export default class Balloon extends Component {
     onPointerDrag: () => null,
     onPointerDragStop: () => null,
     disable: false,
+    onClick: () => null,
   };
 
   constructor(props) {
