@@ -24,6 +24,9 @@ export default class Balloon extends Component {
     onPointerDragStart: PropTypes.func,
     onPointerDrag: PropTypes.func,
     onPointerDragStop: PropTypes.func,
+    disable: PropTypes.bool,
+    onClick: PropTypes.func,
+    strokeColor: PropTypes.string,
   };
 
   static defaultProps = {
@@ -39,6 +42,7 @@ export default class Balloon extends Component {
     },
     marker: <div style={{ width: '30px', height: '30px' }} />,
     backgroundColor: '#f5f5f5',
+    strokeColor: '#f5f5f5',
     zIndex: 100,
     className: '',
     style: {},
@@ -51,6 +55,8 @@ export default class Balloon extends Component {
     onPointerDragStart: () => null,
     onPointerDrag: () => null,
     onPointerDragStop: () => null,
+    disable: false,
+    onClick: () => null,
   };
 
   constructor(props) {
@@ -202,9 +208,10 @@ export default class Balloon extends Component {
   render() {
     const { box, pointer, backgroundColor, zIndex, minWidth, minHeight,
             marker, className, children, style, onPointerDragStart,
-            onBoxDragStart, onBoxResizeStart, onBoxResizeStop } = this.props;
+            onBoxDragStart, onBoxResizeStart, onBoxResizeStop, disable, strokeColor } = this.props;
     const { base, destination, control } = this.state.pointer;
     const { maxHeight, maxWidth } = this.state;
+    const cursor = disable ? { cursor: 'default' } : {};
     return (
       <div
         ref="wrapper"
@@ -223,21 +230,35 @@ export default class Balloon extends Component {
           width={ box.width }
           height={ box.height }
           style={{
+            ...cursor,
             ...style,
             backgroundColor,
             pointerEvents: 'auto',
             position: 'absolute',
           }}
-          isResizable={{
-            top: false,
-            right: true,
-            bottom: true,
-            left: false,
-            topRight: false,
-            bottomRight: true,
-            topLeft: false,
-            bottomLeft: false,
-          }}
+          moveAxis={ this.props.disable ? 'none' : 'both' }
+          isResizable={
+            this.props.disable
+              ? {
+                top: false,
+                right: false,
+                bottom: false,
+                left: false,
+                topRight: false,
+                bottomRight: false,
+                topLeft: false,
+                bottomLeft: false,
+              } : {
+                top: false,
+                right: true,
+                bottom: true,
+                left: false,
+                topRight: false,
+                bottomRight: true,
+                topLeft: false,
+                bottomLeft: false,
+              }
+          }
           onDragStart={ onBoxDragStart }
           onDrag={ ::this.onBoxDrag }
           onDragStop={ ::this.onBoxDragStop }
@@ -260,11 +281,12 @@ export default class Balloon extends Component {
           y={pointer.y - 15}
           width={10}
           height={10}
-          style={ Object.assign({}, { pointerEvents: 'auto' }) }
+          style={ Object.assign({}, { pointerEvents: 'auto', ...cursor }) }
           onDragStart={ onPointerDragStart }
           onDrag={ ::this.onPointerDrag }
           onDragStop={ ::this.onPointerDragStop }
           bounds="parent"
+          moveAxis={ this.props.disable ? 'none' : 'both' }
           isResizable={{
             top: false,
             right: false,
@@ -285,7 +307,7 @@ export default class Balloon extends Component {
                  Q ${control.x} ${control.y} ${destination.x} ${destination.y}
                  Q ${control.x} ${control.y} ${base[1].x} ${base[1].y}`}
             fill={ backgroundColor }
-            stroke={ backgroundColor }
+            stroke={ strokeColor }
             strokeWidth={ 1 }
           />
         </svg>
