@@ -285,28 +285,16 @@ export default class Balloon extends Component {
           onDragStop={ ::this.onPointerDragStop }
           bounds="parent"
           moveAxis={ this.props.disable ? 'none' : 'both' }
-          isResizable={
-            this.props.disable
-              ? {
-                top: false,
-                right: false,
-                bottom: false,
-                left: false,
-                topRight: false,
-                bottomRight: false,
-                topLeft: false,
-                bottomLeft: false,
-              } : {
-                top: false,
-                right: true,
-                bottom: true,
-                left: false,
-                topRight: false,
-                bottomRight: true,
-                topLeft: false,
-                bottomLeft: false,
-              }
-          }
+          isResizable={{
+            top: false,
+            right: false,
+            bottom: false,
+            left: false,
+            topRight: false,
+            bottomRight: false,
+            topLeft: false,
+            bottomLeft: false,
+          }}
           zIndex={zIndex}
         >
           { marker }
