@@ -76,6 +76,22 @@ export default class Balloon extends Component {
     };
   }
 
+  componentWillReceiveProps(nextProps) {
+    const { box, pointer } = nextProps;
+    const pointerState = this.getPointer(box, pointer);
+    this.state = {
+      pointer: pointerState,
+      box: {
+        x: box.x,
+        y: box.y,
+        width: box.width,
+        height: box.height,
+      },
+      maxHeight: this.props.maxHeight,
+      maxWidth: this.props.maxWidth,
+    };
+  }
+
   onBoxResize(_, { width, height }) {
     const { box: { x, y }, pointer: { destination } } = this.state;
     const toBottomBoundary = this.refs.wrapper.clientHeight - y;
