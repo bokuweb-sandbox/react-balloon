@@ -42,11 +42,9 @@ var Example = function (_Component) {
       return _react2.default.createElement(
         _src2.default,
         {
-          start: {
-            box: { x: center.width - 180, y: center.height - 150, width: 300, height: 105 },
-            destination: { x: center.width, y: center.height }
-          },
-          style: { borderRadius: '5px', position: 'relative' },
+          box: { x: center.width - 180, y: center.height - 150, width: 300, height: 105 },
+          pointer: { x: center.width, y: center.height },
+          style: { borderRadius: '5px' },
           backgroundColor: '#ECF0F1',
           className: 'animated bounceInUp',
           minWidth: 250,
@@ -61,12 +59,13 @@ var Example = function (_Component) {
           },
           onBoxResizeStop: function onBoxResizeStop(size) {
             return console.log(size);
-          }
+          },
+          disable: false
         },
         _react2.default.createElement(
           'p',
           { style: { textAlign: 'center', fontSize: '28px' } },
-          'Hello, World!!'
+          'Hello, World!!!'
         )
       );
     }
@@ -76,6 +75,7 @@ var Example = function (_Component) {
 }(_react.Component);
 
 exports.default = Example;
+module.exports = exports['default'];
 
 },{"../../src":165,"react":164}],2:[function(require,module,exports){
 'use strict';
@@ -215,17 +215,13 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
-var _reactDraggable = require('react-draggable');
+var _reactDraggableCustom = require('@bokuweb/react-draggable-custom');
 
-var _reactDraggable2 = _interopRequireDefault(_reactDraggable);
+var _reactDraggableCustom2 = _interopRequireDefault(_reactDraggableCustom);
 
 var _reactResizableBox = require('react-resizable-box');
 
 var _reactResizableBox2 = _interopRequireDefault(_reactResizableBox);
-
-var _Object = require('react/lib/Object.assign');
-
-var _Object2 = _interopRequireDefault(_Object);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { default: obj };
@@ -257,25 +253,69 @@ var ResizableAndMovable = function (_Component) {
 
     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(ResizableAndMovable).call(this, props));
 
-    _this.state = { isDraggable: true };
+    _this.state = {
+      isDraggable: true,
+      x: props.x,
+      y: props.y,
+      original: { x: props.x, y: props.y }
+    };
     _this.isResizing = false;
+    _this.onDragStart = _this.onDragStart.bind(_this);
+    _this.onDrag = _this.onDrag.bind(_this);
+    _this.onDragStop = _this.onDragStop.bind(_this);
+    _this.onResizeStart = _this.onResizeStart.bind(_this);
+    _this.onResize = _this.onResize.bind(_this);
+    _this.onResizeStop = _this.onResizeStop.bind(_this);
     return _this;
   }
 
   _createClass(ResizableAndMovable, [{
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      var _props$initAsResizing = this.props.initAsResizing;
+      var enable = _props$initAsResizing.enable;
+      var direction = _props$initAsResizing.direction;
+      var event = _props$initAsResizing.event;
+
+      if (enable) this.refs.resizable.onResizeStart(direction, event);
+    }
+  }, {
+    key: 'componentWillReceiveProps',
+    value: function componentWillReceiveProps(_ref) {
+      var x = _ref.x;
+      var y = _ref.y;
+
+      if (x !== this.props.x) this.setState({ x: x });
+      if (y !== this.props.y) this.setState({ y: y });
+    }
+  }, {
     key: 'onResizeStart',
-    value: function onResizeStart(dir, e) {
-      this.setState({ isDraggable: false });
+    value: function onResizeStart(dir, styleSize, clientSize, e) {
+      this.setState({
+        isDraggable: false,
+        original: { x: this.state.x, y: this.state.y }
+      });
       this.isResizing = true;
-      this.props.onResizeStart();
+      this.props.onResizeStart(dir, styleSize, clientSize, e);
       e.stopPropagation();
     }
   }, {
+    key: 'onResize',
+    value: function onResize(dir, styleSize, clientSize, delta) {
+      if (/left/i.test(dir)) {
+        this.setState({ x: this.state.original.x - delta.width });
+      }
+      if (/top/i.test(dir)) {
+        this.setState({ y: this.state.original.y - delta.height });
+      }
+      this.props.onResize(dir, styleSize, clientSize, delta);
+    }
+  }, {
     key: 'onResizeStop',
-    value: function onResizeStop(size) {
+    value: function onResizeStop(dir, styleSize, clientSize, delta) {
       this.setState({ isDraggable: true });
       this.isResizing = false;
-      this.props.onResizeStop(size);
+      this.props.onResizeStop(dir, styleSize, clientSize, delta);
     }
   }, {
     key: 'onDragStart',
@@ -287,6 +327,7 @@ var ResizableAndMovable = function (_Component) {
     key: 'onDrag',
     value: function onDrag(e, ui) {
       if (this.isResizing) return;
+      this.setState({ x: ui.position.left, y: ui.position.top });
       this.props.onDrag(e, ui);
     }
   }, {
@@ -299,74 +340,145 @@ var ResizableAndMovable = function (_Component) {
     key: 'render',
     value: function render() {
       var _props = this.props;
-      var customClass = _props.customClass;
-      var customStyle = _props.customStyle;
+      var className = _props.className;
+      var style = _props.style;
       var onClick = _props.onClick;
       var onTouchStart = _props.onTouchStart;
+      var width = _props.width;
+      var height = _props.height;
       var minWidth = _props.minWidth;
       var minHeight = _props.minHeight;
       var maxWidth = _props.maxWidth;
       var maxHeight = _props.maxHeight;
-      var start = _props.start;
       var zIndex = _props.zIndex;
       var bounds = _props.bounds;
+      var moveAxis = _props.moveAxis;
+      var dragHandlerClassName = _props.dragHandlerClassName;
+      var grid = _props.grid;
+      var onDoubleClick = _props.onDoubleClick;
+      var _state = this.state;
+      var x = _state.x;
+      var y = _state.y;
 
-      return _react2.default.createElement(_reactDraggable2.default, {
-        axis: this.props.moveAxis,
+      return _react2.default.createElement(_reactDraggableCustom2.default, {
+        axis: moveAxis,
         zIndex: zIndex,
-        start: { x: start.x, y: start.y },
-        disabled: !this.state.isDraggable,
-        onStart: this.onDragStart.bind(this),
-        onDrag: this.onDrag.bind(this),
-        onStop: this.onDragStop.bind(this),
-        bounds: bounds }, _react2.default.createElement('div', { style: {
-          width: start.width + 'px',
-          height: start.height + 'px',
-          cursor: "move",
-          position: 'absolute'
-        } }, _react2.default.createElement(_reactResizableBox2.default, {
+        start: { x: x, y: y },
+        disabled: !this.state.isDraggable || this.props.moveAxis === 'none',
+        onStart: this.onDragStart,
+        handle: dragHandlerClassName,
+        onDrag: this.onDrag,
+        onStop: this.onDragStop,
+        bounds: bounds,
+        grid: grid,
+        passCoordinate: true,
+        x: x,
+        y: y
+      }, _react2.default.createElement('div', {
+        style: {
+          width: width,
+          height: height,
+          cursor: 'move',
+          position: 'absolute',
+          zIndex: zIndex
+        }
+      }, _react2.default.createElement(_reactResizableBox2.default, {
+        ref: 'resizable',
         onClick: onClick,
+        onDoubleClick: onDoubleClick,
         onTouchStart: onTouchStart,
-        onResizeStart: this.onResizeStart.bind(this),
-        onResize: this.props.onResize,
-        onResizeStop: this.onResizeStop.bind(this),
-        width: start.width,
-        height: start.height,
+        onResizeStart: this.onResizeStart,
+        onResize: this.onResize,
+        onResizeStop: this.onResizeStop,
+        width: '100%',
+        height: '100%',
         minWidth: minWidth,
         minHeight: minHeight,
         maxWidth: maxWidth,
         maxHeight: maxHeight,
-        customStyle: customStyle,
-        customClass: customClass,
-        isResizable: this.props.isResizable }, this.props.children)));
+        customStyle: style,
+        customClass: className,
+        isResizable: this.props.isResizable,
+        handleStyle: this.props.resizerHandleStyle
+      }, this.props.children)));
     }
   }]);
 
   return ResizableAndMovable;
 }(_react.Component);
 
-exports.default = ResizableAndMovable;
-
 ResizableAndMovable.propTypes = {
-  onClick: _react.PropTypes.func,
+  initAsResizing: _react.PropTypes.object,
+  onResizeStart: _react.PropTypes.func,
+  onResize: _react.PropTypes.func,
+  onResizeStop: _react.PropTypes.func,
+  onDragStart: _react.PropTypes.func,
+  onDrag: _react.PropTypes.func,
+  onDragStop: _react.PropTypes.func,
+  className: _react.PropTypes.string,
+  style: _react.PropTypes.object,
+  children: _react.PropTypes.any,
   onTouchStart: _react.PropTypes.func,
-  zIndex: _react.PropTypes.number,
-  width: _react.PropTypes.number.isRequired,
-  height: _react.PropTypes.number.isRequired,
-  isResizable: _react.PropTypes.object,
-  bounds: _react.PropTypes.oneOfType([_react2.default.PropTypes.string, _react2.default.PropTypes.object])
+  onClick: _react.PropTypes.func,
+  onDoubleClick: _react.PropTypes.func,
+  dragHandlerClassName: _react.PropTypes.string,
+  resizerHandleStyle: _react.PropTypes.shape({
+    top: _react.PropTypes.object,
+    right: _react.PropTypes.object,
+    bottom: _react.PropTypes.object,
+    left: _react.PropTypes.object,
+    topRight: _react.PropTypes.object,
+    bottomRight: _react.PropTypes.object,
+    bottomLeft: _react.PropTypes.object,
+    topLeft: _react.PropTypes.object
+  }),
+  isResizable: _react.PropTypes.shape({
+    top: _react.PropTypes.bool,
+    right: _react.PropTypes.bool,
+    bottom: _react.PropTypes.bool,
+    left: _react.PropTypes.bool,
+    topRight: _react.PropTypes.bool,
+    bottomRight: _react.PropTypes.bool,
+    bottomLeft: _react.PropTypes.bool,
+    topLeft: _react.PropTypes.bool
+  }),
+  width: _react.PropTypes.oneOfType([_react.PropTypes.number, _react.PropTypes.string]),
+  height: _react.PropTypes.oneOfType([_react.PropTypes.number, _react.PropTypes.string]),
+  minWidth: _react.PropTypes.number,
+  minHeight: _react.PropTypes.number,
+  maxWidth: _react.PropTypes.number,
+  maxHeight: _react.PropTypes.number,
+  moveAxis: _react.PropTypes.oneOf(['x', 'y', 'both', 'none']),
+  grid: _react.PropTypes.arrayOf(_react.PropTypes.number),
+  bounds: _react.PropTypes.oneOfType([_react.PropTypes.string, _react.PropTypes.object]),
+  x: _react.PropTypes.number,
+  y: _react.PropTypes.number,
+  zIndex: _react.PropTypes.number
 };
-
 ResizableAndMovable.defaultProps = {
+  x: 0,
+  y: 0,
   width: 100,
   height: 100,
-  start: { x: 0, y: 0 },
   zIndex: 100,
-  customClass: '',
-  isResizable: { x: true, y: true, xy: true },
+  className: '',
+  dragHandlerClassName: '',
+  initAsResizing: { enable: false, direction: 'bottomRight' },
+  isResizable: {
+    top: true,
+    right: true,
+    bottom: true,
+    left: true,
+    topRight: true,
+    bottomRight: true,
+    bottomLeft: true,
+    topLeft: true
+  },
+  style: {},
   moveAxis: 'both',
+  grid: null,
   onClick: function onClick() {},
-  onTouchStartP: function onTouchStartP() {},
+  onTouchStart: function onTouchStart() {},
   onDragStart: function onDragStart() {},
   onDrag: function onDrag() {},
   onDragStop: function onDragStop() {},
@@ -374,8 +486,10 @@ ResizableAndMovable.defaultProps = {
   onResize: function onResize() {},
   onResizeStop: function onResizeStop() {}
 };
+exports.default = ResizableAndMovable;
+module.exports = exports['default'];
 
-},{"react":164,"react-draggable":6,"react-resizable-box":7,"react/lib/Object.assign":30}],6:[function(require,module,exports){
+},{"@bokuweb/react-draggable-custom":6,"react":164,"react-resizable-box":7}],6:[function(require,module,exports){
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory(require("react"), require("react-dom"));
@@ -434,8 +548,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
-	module.exports = __webpack_require__(1);
-	module.exports.DraggableCore = __webpack_require__(10);
+	module.exports = __webpack_require__(1).default;
+	module.exports.DraggableCore = __webpack_require__(9).default;
 
 /***/ },
 /* 1 */
@@ -443,23 +557,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
-	Object.defineProperty(exports, '__esModule', {
+	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 	
 	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 	
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-	
-	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _react = __webpack_require__(2);
 	
@@ -473,69 +579,77 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var _classnames2 = _interopRequireDefault(_classnames);
 	
-	var _objectAssign = __webpack_require__(5);
+	var _domFns = __webpack_require__(5);
 	
-	var _objectAssign2 = _interopRequireDefault(_objectAssign);
+	var _positionFns = __webpack_require__(8);
 	
-	var _utilsDomFns = __webpack_require__(6);
+	var _shims = __webpack_require__(6);
 	
-	var _utilsPositionFns = __webpack_require__(9);
+	var _DraggableCore = __webpack_require__(9);
 	
-	var _utilsShims = __webpack_require__(7);
+	var _DraggableCore2 = _interopRequireDefault(_DraggableCore);
 	
-	var _DraggableCore2 = __webpack_require__(10);
+	var _log = __webpack_require__(10);
 	
-	var _DraggableCore3 = _interopRequireDefault(_DraggableCore2);
+	var _log2 = _interopRequireDefault(_log);
 	
-	var _utilsLog = __webpack_require__(11);
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var _utilsLog2 = _interopRequireDefault(_utilsLog);
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	// $FlowIgnore
+	
 	
 	//
 	// Define <Draggable>
 	//
 	
-	var Draggable = (function (_DraggableCore) {
-	  _inherits(Draggable, _DraggableCore);
+	var Draggable = function (_React$Component) {
+	  _inherits(Draggable, _React$Component);
 	
 	  function Draggable() {
-	    var _this = this;
+	    var _Object$getPrototypeO;
+	
+	    var _temp, _this, _ret;
 	
 	    _classCallCheck(this, Draggable);
 	
-	    _get(Object.getPrototypeOf(Draggable.prototype), 'constructor', this).apply(this, arguments);
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
 	
-	    this.state = {
+	    return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(Draggable)).call.apply(_Object$getPrototypeO, [this].concat(args))), _this), _this.state = {
 	      // Whether or not we are currently dragging.
 	      dragging: false,
 	
+	      // Whether or not we have been dragged before.
+	      dragged: false,
+	
 	      // Current transform x and y.
-	      clientX: this.props.start.x, clientY: this.props.start.y,
+	      clientX: _this.props.start.x, clientY: _this.props.start.y,
+	
+	      // Used for compensating for out-of-bounds drags
+	      slackX: 0, slackY: 0,
 	
 	      // Can only determine if SVG after mounting
 	      isElementSVG: false
-	    };
-	
-	    this.onDragStart = function (e, coreEvent) {
-	      (0, _utilsLog2['default'])('Draggable: onDragStart: %j', coreEvent.position);
+	    }, _this.onDragStart = function (e, coreEvent) {
+	      (0, _log2.default)('Draggable: onDragStart: %j', coreEvent.position);
 	
 	      // Short-circuit if user's callback killed it.
-	      var shouldStart = _this.props.onStart(e, (0, _utilsDomFns.createUIEvent)(_this, coreEvent));
+	      var shouldStart = _this.props.onStart(e, (0, _domFns.createUIEvent)(_this, coreEvent));
 	      // Kills start event on core as well, so move handlers are never bound.
 	      if (shouldStart === false) return false;
 	
-	      _this.setState({ dragging: true });
-	    };
-	
-	    this.onDrag = function (e, coreEvent) {
+	      _this.setState({ dragging: true, dragged: true });
+	    }, _this.onDrag = function (e, coreEvent) {
 	      if (!_this.state.dragging) return false;
-	      (0, _utilsLog2['default'])('Draggable: onDrag: %j', coreEvent.position);
+	      (0, _log2.default)('Draggable: onDrag: %j', coreEvent.position);
 	
-	      var uiEvent = (0, _utilsDomFns.createUIEvent)(_this, coreEvent);
-	
-	      // Short-circuit if user's callback killed it.
-	      var shouldUpdate = _this.props.onDrag(e, uiEvent);
-	      if (shouldUpdate === false) return false;
+	      var uiEvent = (0, _domFns.createUIEvent)(_this, coreEvent);
 	
 	      var newState = {
 	        clientX: uiEvent.position.left,
@@ -544,61 +658,114 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      // Keep within bounds.
 	      if (_this.props.bounds) {
-	        var _getBoundPosition = (0, _utilsPositionFns.getBoundPosition)(_this, newState.clientX, newState.clientY);
+	        // Save original x and y.
+	        var _clientX = newState.clientX;
+	        var _clientY = newState.clientY;
+	
+	        // Add slack to the values used to calculate bound position. This will ensure that if
+	        // we start removing slack, the element won't react to it right away until it's been
+	        // completely removed.
+	
+	        newState.clientX += _this.state.slackX;
+	        newState.clientY += _this.state.slackY;
+	
+	        // Get bound position. This will ceil/floor the x and y within the boundaries.
+	
+	
+	        // Recalculate slack by noting how much was shaved by the boundPosition handler.
+	
+	        var _getBoundPosition = (0, _positionFns.getBoundPosition)(_this, newState.clientX, newState.clientY);
 	
 	        var _getBoundPosition2 = _slicedToArray(_getBoundPosition, 2);
 	
 	        newState.clientX = _getBoundPosition2[0];
 	        newState.clientY = _getBoundPosition2[1];
+	        newState.slackX = _this.state.slackX + (_clientX - newState.clientX);
+	        newState.slackY = _this.state.slackY + (_clientY - newState.clientY);
+	
+	        // Update the event we fire to reflect what really happened after bounds took effect.
+	        uiEvent.position.left = _clientX;
+	        uiEvent.position.top = _clientY;
+	        uiEvent.deltaX = newState.clientX - _this.state.clientX;
+	        uiEvent.deltaY = newState.clientY - _this.state.clientY;
 	      }
 	
-	      _this.setState(newState);
-	    };
+	      // Short-circuit if user's callback killed it.
+	      var shouldUpdate = _this.props.onDrag(e, uiEvent);
+	      if (shouldUpdate === false) return false;
 	
-	    this.onDragStop = function (e, coreEvent) {
+	      _this.setState(newState);
+	    }, _this.onDragStop = function (e, coreEvent) {
 	      if (!_this.state.dragging) return false;
 	
 	      // Short-circuit if user's callback killed it.
-	      var shouldStop = _this.props.onStop(e, (0, _utilsDomFns.createUIEvent)(_this, coreEvent));
+	      var shouldStop = _this.props.onStop(e, (0, _domFns.createUIEvent)(_this, coreEvent));
 	      if (shouldStop === false) return false;
 	
-	      (0, _utilsLog2['default'])('Draggable: onDragStop: %j', coreEvent.position);
+	      (0, _log2.default)('Draggable: onDragStop: %j', coreEvent.position);
 	
 	      _this.setState({
-	        dragging: false
+	        dragging: false,
+	        slackX: 0,
+	        slackY: 0
 	      });
-	    };
+	    }, _temp), _possibleConstructorReturn(_this, _ret);
 	  }
 	
 	  _createClass(Draggable, [{
 	    key: 'componentDidMount',
 	    value: function componentDidMount() {
 	      // Check to see if the element passed is an instanceof SVGElement
-	      if (_reactDom2['default'].findDOMNode(this) instanceof SVGElement) {
+	      if (_reactDom2.default.findDOMNode(this) instanceof SVGElement) {
 	        this.setState({ isElementSVG: true });
+	      }
+	    }
+	  }, {
+	    key: 'componentWillUnmount',
+	    value: function componentWillUnmount() {
+	      this.setState({ dragging: false }); // prevents invariant if unmounted while dragging
+	    }
+	  }, {
+	    key: 'componentWillReceiveProps',
+	    value: function componentWillReceiveProps(next) {
+	      var _state = this.state;
+	      var clientX = _state.clientX;
+	      var clientY = _state.clientY;
+	
+	      if (next.x !== clientX || next.y !== clientY) {
+	        var _getBoundPosition3 = (0, _positionFns.getBoundPosition)(this, next.x, next.y);
+	
+	        var _getBoundPosition4 = _slicedToArray(_getBoundPosition3, 2);
+	
+	        clientX = _getBoundPosition4[0];
+	        clientY = _getBoundPosition4[1];
+	
+	        this.setState({ clientX: clientX, clientY: clientY });
 	      }
 	    }
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var style = undefined,
+	      var style = {},
 	          svgTransform = null;
+	
 	      // Add a CSS transform to move the element around. This allows us to move the element around
 	      // without worrying about whether or not it is relatively or absolutely positioned.
 	      // If the item you are dragging already has a transform set, wrap it in a <span> so <Draggable>
 	      // has a clean slate.
-	      style = (0, _utilsDomFns.createTransform)({
+	      var transformOpts = {
 	        // Set left if horizontal drag is enabled
-	        x: this.props.passPosition ? this.props.x : (0, _utilsPositionFns.canDragX)(this) ? this.state.clientX : this.props.start.x,
+	        x: (0, _positionFns.canDragX)(this) ? this.state.clientX : this.props.start.x,
 	
 	        // Set top if vertical drag is enabled
-	        y: this.props.passPosition ? this.props.y : (0, _utilsPositionFns.canDragY)(this) ? this.state.clientY : this.props.start.y
-	      }, this.state.isElementSVG);
+	        y: (0, _positionFns.canDragY)(this) ? this.state.clientY : this.props.start.y
+	      };
 	
 	      // If this element was SVG, we use the `transform` attribute.
 	      if (this.state.isElementSVG) {
-	        svgTransform = style;
-	        style = {};
+	        svgTransform = (0, _domFns.createSVGTransform)(transformOpts);
+	      } else {
+	        style = (0, _domFns.createCSSTransform)(transformOpts);
 	      }
 	
 	      // zIndex option
@@ -607,142 +774,136 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	
 	      // Mark with class while dragging
-	      var className = (0, _classnames2['default'])(this.props.children.props.className || '', 'react-draggable', {
+	      var className = (0, _classnames2.default)(this.props.children.props.className || '', 'react-draggable', {
 	        'react-draggable-dragging': this.state.dragging,
 	        'react-draggable-dragged': this.state.dragged
 	      });
 	
 	      // Reuse the child provided
 	      // This makes it flexible to use whatever element is wanted (div, ul, etc)
-	      return _react2['default'].createElement(
-	        _DraggableCore3['default'],
+	      return _react2.default.createElement(
+	        _DraggableCore2.default,
 	        _extends({}, this.props, { onStart: this.onDragStart, onDrag: this.onDrag, onStop: this.onDragStop }),
-	        _react2['default'].cloneElement(_react2['default'].Children.only(this.props.children), {
+	        _react2.default.cloneElement(_react2.default.Children.only(this.props.children), {
 	          className: className,
-	          style: (0, _objectAssign2['default'])({}, this.props.children.props.style, style),
+	          style: _extends({}, this.props.children.props.style, style),
 	          transform: svgTransform
 	        })
 	      );
 	    }
-	  }], [{
-	    key: 'displayName',
-	    value: 'Draggable',
-	    enumerable: true
-	  }, {
-	    key: 'propTypes',
-	    value: (0, _objectAssign2['default'])({}, _DraggableCore3['default'].propTypes, {
-	      /**
-	       * `axis` determines which axis the draggable can move.
-	       *
-	       * 'both' allows movement horizontally and vertically.
-	       * 'x' limits movement to horizontal axis.
-	       * 'y' limits movement to vertical axis.
-	       *
-	       * Defaults to 'both'.
-	       */
-	      axis: _react.PropTypes.oneOf(['both', 'x', 'y']),
-	
-	      /**
-	       * `bounds` determines the range of movement available to the element.
-	       * Available values are:
-	       *
-	       * 'parent' restricts movement within the Draggable's parent node.
-	       *
-	       * Alternatively, pass an object with the following properties, all of which are optional:
-	       *
-	       * {left: LEFT_BOUND, right: RIGHT_BOUND, bottom: BOTTOM_BOUND, top: TOP_BOUND}
-	       *
-	       * All values are in px.
-	       *
-	       * Example:
-	       *
-	       * ```jsx
-	       *   let App = React.createClass({
-	       *       render: function () {
-	       *         return (
-	       *            <Draggable bounds={{right: 300, bottom: 300}}>
-	       *              <div>Content</div>
-	       *           </Draggable>
-	       *         );
-	       *       }
-	       *   });
-	       * ```
-	       */
-	      bounds: _react.PropTypes.oneOfType([_react.PropTypes.shape({
-	        left: _react.PropTypes.Number,
-	        right: _react.PropTypes.Number,
-	        top: _react.PropTypes.Number,
-	        bottom: _react.PropTypes.Number
-	      }), _react.PropTypes.oneOf(['parent', false])]),
-	
-	      /**
-	       * `start` specifies the x and y that the dragged item should start at
-	       *
-	       * Example:
-	       *
-	       * ```jsx
-	       *      let App = React.createClass({
-	       *          render: function () {
-	       *              return (
-	       *                  <Draggable start={{x: 25, y: 25}}>
-	       *                      <div>I start with transformX: 25px and transformY: 25px;</div>
-	       *                  </Draggable>
-	       *              );
-	       *          }
-	       *      });
-	       * ```
-	       */
-	      start: _react.PropTypes.shape({
-	        x: _react.PropTypes.number,
-	        y: _react.PropTypes.number
-	      }),
-	
-	      /**
-	       * `zIndex` specifies the zIndex to use while dragging.
-	       *
-	       * Example:
-	       *
-	       * ```jsx
-	       *   let App = React.createClass({
-	       *       render: function () {
-	       *           return (
-	       *               <Draggable zIndex={100}>
-	       *                   <div>I have a zIndex</div>
-	       *               </Draggable>
-	       *           );
-	       *       }
-	       *   });
-	       * ```
-	       */
-	      zIndex: _react.PropTypes.number,
-	
-	      /**
-	       * These properties should be defined on the child, not here.
-	       */
-	      className: _utilsShims.dontSetMe,
-	      style: _utilsShims.dontSetMe,
-	      transform: _utilsShims.dontSetMe
-	    }),
-	    enumerable: true
-	  }, {
-	    key: 'defaultProps',
-	    value: (0, _objectAssign2['default'])({}, _DraggableCore3['default'].defaultProps, {
-	      axis: 'both',
-	      bounds: false,
-	      start: { x: 0, y: 0 },
-	      zIndex: NaN,
-	      passPosition: false,
-	      x: 0,
-	      y: 0
-	    }),
-	    enumerable: true
 	  }]);
 	
 	  return Draggable;
-	})(_DraggableCore3['default']);
+	}(_react2.default.Component);
 	
-	exports['default'] = Draggable;
-	module.exports = exports['default'];
+	Draggable.displayName = 'Draggable';
+	Draggable.propTypes = _extends({}, _DraggableCore2.default.propTypes, {
+	
+	  /**
+	   * `axis` determines which axis the draggable can move.
+	   *
+	   *  Note that all callbacks will still return data as normal. This only
+	   *  controls flushing to the DOM.
+	   *
+	   * 'both' allows movement horizontally and vertically.
+	   * 'x' limits movement to horizontal axis.
+	   * 'y' limits movement to vertical axis.
+	   * 'none' limits all movement.
+	   *
+	   * Defaults to 'both'.
+	   */
+	  axis: _react.PropTypes.oneOf(['both', 'x', 'y', 'none']),
+	
+	  /**
+	   * `bounds` determines the range of movement available to the element.
+	   * Available values are:
+	   *
+	   * 'parent' restricts movement within the Draggable's parent node.
+	   *
+	   * Alternatively, pass an object with the following properties, all of which are optional:
+	   *
+	   * {left: LEFT_BOUND, right: RIGHT_BOUND, bottom: BOTTOM_BOUND, top: TOP_BOUND}
+	   *
+	   * All values are in px.
+	   *
+	   * Example:
+	   *
+	   * ```jsx
+	   *   let App = React.createClass({
+	   *       render: function () {
+	   *         return (
+	   *            <Draggable bounds={{right: 300, bottom: 300}}>
+	   *              <div>Content</div>
+	   *           </Draggable>
+	   *         );
+	   *       }
+	   *   });
+	   * ```
+	   */
+	  bounds: _react.PropTypes.oneOfType([_react.PropTypes.shape({
+	    left: _react.PropTypes.Number,
+	    right: _react.PropTypes.Number,
+	    top: _react.PropTypes.Number,
+	    bottom: _react.PropTypes.Number
+	  }), _react.PropTypes.string, _react.PropTypes.oneOf([false])]),
+	
+	  /**
+	   * `start` specifies the x and y that the dragged item should start at
+	   *
+	   * Example:
+	   *
+	   * ```jsx
+	   *      let App = React.createClass({
+	   *          render: function () {
+	   *              return (
+	   *                  <Draggable start={{x: 25, y: 25}}>
+	   *                      <div>I start with transformX: 25px and transformY: 25px;</div>
+	   *                  </Draggable>
+	   *              );
+	   *          }
+	   *      });
+	   * ```
+	   */
+	  start: _react.PropTypes.shape({
+	    x: _react.PropTypes.number,
+	    y: _react.PropTypes.number
+	  }),
+	
+	  /**
+	   * `zIndex` specifies the zIndex to use while dragging.
+	   *
+	   * Example:
+	   *
+	   * ```jsx
+	   *   let App = React.createClass({
+	   *       render: function () {
+	   *           return (
+	   *               <Draggable zIndex={100}>
+	   *                   <div>I have a zIndex</div>
+	   *               </Draggable>
+	   *           );
+	   *       }
+	   *   });
+	   * ```
+	   */
+	  zIndex: _react.PropTypes.number,
+	
+	  /**
+	   * These properties should be defined on the child, not here.
+	   */
+	  className: _shims.dontSetMe,
+	  style: _shims.dontSetMe,
+	  transform: _shims.dontSetMe
+	});
+	Draggable.defaultProps = _extends({}, _DraggableCore2.default.defaultProps, {
+	  axis: 'both',
+	  bounds: false,
+	  start: { x: 0, y: 0 },
+	  zIndex: NaN,
+	  x: 0,
+	  y: 0
+	});
+	exports.default = Draggable;
 
 /***/ },
 /* 2 */
@@ -812,58 +973,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 5 */
-/***/ function(module, exports) {
-
-	/* eslint-disable no-unused-vars */
-	'use strict';
-	var hasOwnProperty = Object.prototype.hasOwnProperty;
-	var propIsEnumerable = Object.prototype.propertyIsEnumerable;
-	
-	function toObject(val) {
-		if (val === null || val === undefined) {
-			throw new TypeError('Object.assign cannot be called with null or undefined');
-		}
-	
-		return Object(val);
-	}
-	
-	module.exports = Object.assign || function (target, source) {
-		var from;
-		var to = toObject(target);
-		var symbols;
-	
-		for (var s = 1; s < arguments.length; s++) {
-			from = Object(arguments[s]);
-	
-			for (var key in from) {
-				if (hasOwnProperty.call(from, key)) {
-					to[key] = from[key];
-				}
-			}
-	
-			if (Object.getOwnPropertySymbols) {
-				symbols = Object.getOwnPropertySymbols(from);
-				for (var i = 0; i < symbols.length; i++) {
-					if (propIsEnumerable.call(from, symbols[i])) {
-						to[symbols[i]] = from[symbols[i]];
-					}
-				}
-			}
-		}
-	
-		return to;
-	};
-
-
-/***/ },
-/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	Object.defineProperty(exports, '__esModule', {
+	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
 	exports.matchesSelector = matchesSelector;
 	exports.addEvent = addEvent;
 	exports.removeEvent = removeEvent;
@@ -871,7 +990,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.outerWidth = outerWidth;
 	exports.innerHeight = innerHeight;
 	exports.innerWidth = innerWidth;
-	exports.createTransform = createTransform;
 	exports.createCSSTransform = createCSSTransform;
 	exports.createSVGTransform = createSVGTransform;
 	exports.addUserSelectStyles = addUserSelectStyles;
@@ -880,42 +998,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.createCoreEvent = createCoreEvent;
 	exports.createUIEvent = createUIEvent;
 	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+	var _shims = __webpack_require__(6);
 	
-	var _shims = __webpack_require__(7);
-	
-	var _getPrefix = __webpack_require__(8);
+	var _getPrefix = __webpack_require__(7);
 	
 	var _getPrefix2 = _interopRequireDefault(_getPrefix);
-	
-	var _objectAssign = __webpack_require__(5);
-	
-	var _objectAssign2 = _interopRequireDefault(_objectAssign);
 	
 	var _reactDom = __webpack_require__(3);
 	
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+	
 	var matchesSelectorFunc = '';
-	
 	function matchesSelector(el, selector) {
-	  if (!(el instanceof Node)) throw new TypeError('Value of argument \'el\' violates contract, expected Node got ' + (el === null ? 'null' : el instanceof Object && el.constructor ? el.constructor.name : typeof el));
-	  if (typeof selector !== 'string') throw new TypeError('Value of argument \'selector\' violates contract, expected string got ' + (selector === null ? 'null' : selector instanceof Object && selector.constructor ? selector.constructor.name : typeof selector));
-	
 	  if (!matchesSelectorFunc) {
 	    matchesSelectorFunc = (0, _shims.findInArray)(['matches', 'webkitMatchesSelector', 'mozMatchesSelector', 'msMatchesSelector', 'oMatchesSelector'], function (method) {
+	      // $FlowIgnore: Doesn't think elements are indexable
 	      return (0, _shims.isFunction)(el[method]);
 	    });
 	  }
 	
+	  // $FlowIgnore: Doesn't think elements are indexable
 	  return el[matchesSelectorFunc].call(el, selector);
 	}
 	
 	function addEvent(el, event, handler) {
-	  if (el != null && !(el instanceof Node)) throw new TypeError('Value of argument \'el\' violates contract, expected null or Node got ' + (el === null ? 'null' : el instanceof Object && el.constructor ? el.constructor.name : typeof el));
-	  if (typeof event !== 'string') throw new TypeError('Value of argument \'event\' violates contract, expected string got ' + (event === null ? 'null' : event instanceof Object && event.constructor ? event.constructor.name : typeof event));
-	  if (typeof handler !== 'function') throw new TypeError('Value of argument \'handler\' violates contract, expected function got ' + (handler === null ? 'null' : handler instanceof Object && handler.constructor ? handler.constructor.name : typeof handler));
-	
 	  if (!el) {
 	    return;
 	  }
@@ -924,15 +1034,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  } else if (el.addEventListener) {
 	    el.addEventListener(event, handler, true);
 	  } else {
+	    // $FlowIgnore: Doesn't think elements are indexable
 	    el['on' + event] = handler;
 	  }
 	}
 	
 	function removeEvent(el, event, handler) {
-	  if (el != null && !(el instanceof Node)) throw new TypeError('Value of argument \'el\' violates contract, expected null or Node got ' + (el === null ? 'null' : el instanceof Object && el.constructor ? el.constructor.name : typeof el));
-	  if (typeof event !== 'string') throw new TypeError('Value of argument \'event\' violates contract, expected string got ' + (event === null ? 'null' : event instanceof Object && event.constructor ? event.constructor.name : typeof event));
-	  if (typeof handler !== 'function') throw new TypeError('Value of argument \'handler\' violates contract, expected function got ' + (handler === null ? 'null' : handler instanceof Object && handler.constructor ? handler.constructor.name : typeof handler));
-	
 	  if (!el) {
 	    return;
 	  }
@@ -941,13 +1048,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  } else if (el.removeEventListener) {
 	    el.removeEventListener(event, handler, true);
 	  } else {
+	    // $FlowIgnore: Doesn't think elements are indexable
 	    el['on' + event] = null;
 	  }
 	}
 	
 	function outerHeight(node) {
-	  if (!(node instanceof Node)) throw new TypeError('Value of argument \'node\' violates contract, expected Node got ' + (node === null ? 'null' : node instanceof Object && node.constructor ? node.constructor.name : typeof node));
-	
 	  // This is deliberately excluding margin for our calculations, since we are using
 	  // offsetTop which is including margin. See getBoundPosition
 	  var height = node.clientHeight;
@@ -958,8 +1064,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	function outerWidth(node) {
-	  if (!(node instanceof Node)) throw new TypeError('Value of argument \'node\' violates contract, expected Node got ' + (node === null ? 'null' : node instanceof Object && node.constructor ? node.constructor.name : typeof node));
-	
 	  // This is deliberately excluding margin for our calculations, since we are using
 	  // offsetLeft which is including margin. See getBoundPosition
 	  var width = node.clientWidth;
@@ -968,10 +1072,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  width += (0, _shims.int)(computedStyle.borderRightWidth);
 	  return width;
 	}
-	
 	function innerHeight(node) {
-	  if (!(node instanceof Node)) throw new TypeError('Value of argument \'node\' violates contract, expected Node got ' + (node === null ? 'null' : node instanceof Object && node.constructor ? node.constructor.name : typeof node));
-	
 	  var height = node.clientHeight;
 	  var computedStyle = window.getComputedStyle(node);
 	  height -= (0, _shims.int)(computedStyle.paddingTop);
@@ -980,8 +1081,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	function innerWidth(node) {
-	  if (!(node instanceof Node)) throw new TypeError('Value of argument \'node\' violates contract, expected Node got ' + (node === null ? 'null' : node instanceof Object && node.constructor ? node.constructor.name : typeof node));
-	
 	  var width = node.clientWidth;
 	  var computedStyle = window.getComputedStyle(node);
 	  width -= (0, _shims.int)(computedStyle.paddingLeft);
@@ -989,47 +1088,27 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return width;
 	}
 	
-	function createTransform(position, isSVG) {
-	  if (typeof position !== 'object') throw new TypeError('Value of argument \'position\' violates contract, expected object got ' + (position === null ? 'null' : position instanceof Object && position.constructor ? position.constructor.name : typeof position));
-	  if (isSVG != null && typeof isSVG !== 'boolean') throw new TypeError('Value of argument \'isSVG\' violates contract, expected null or boolean got ' + (isSVG === null ? 'null' : isSVG instanceof Object && isSVG.constructor ? isSVG.constructor.name : typeof isSVG));
-	
-	  if (isSVG) return createSVGTransform(position);
-	  return createCSSTransform(position);
-	}
-	
 	function createCSSTransform(_ref) {
 	  var x = _ref.x;
 	  var y = _ref.y;
-	  return (function () {
-	    if ({ x: x, y: y } === null || typeof { x: x, y: y } !== 'object' || typeof { x: x, y: y }.x !== 'number' || typeof { x: x, y: y }.y !== 'number') throw new TypeError('Value of argument \'undefined\' violates contract, expected Object with properties x and y got ' + ({ x: x, y: y } === null ? 'null' : { x: x, y: y } instanceof Object && { x: x, y: y }.constructor ? { x: x, y: y }.constructor.name : typeof { x: x, y: y }));
 	
-	    // Replace unitless items with px
-	    var out = { transform: 'translate(' + x + 'px,' + y + 'px)' };
-	    // Add single prefixed property as well
-	    if (_getPrefix2['default']) {
-	      out[_getPrefix2['default'] + 'Transform'] = out.transform;
-	    }
-	    return out;
-	  })();
+	  // Replace unitless items with px
+	  return _defineProperty({}, (0, _getPrefix.browserPrefixToKey)('transform', _getPrefix2.default), 'translate(' + x + 'px,' + y + 'px)');
 	}
 	
-	function createSVGTransform(_ref2) {
-	  var x = _ref2.x;
-	  var y = _ref2.y;
-	  return (function () {
-	    if ({ x: x, y: y } === null || typeof { x: x, y: y } !== 'object' || typeof { x: x, y: y }.x !== 'number' || typeof { x: x, y: y }.y !== 'number') throw new TypeError('Value of argument \'undefined\' violates contract, expected Object with properties x and y got ' + ({ x: x, y: y } === null ? 'null' : { x: x, y: y } instanceof Object && { x: x, y: y }.constructor ? { x: x, y: y }.constructor.name : typeof { x: x, y: y }));
+	function createSVGTransform(_ref3) {
+	  var x = _ref3.x;
+	  var y = _ref3.y;
 	
-	    return 'translate(' + x + ',' + y + ')';
-	  })();
+	  return 'translate(' + x + ',' + y + ')';
 	}
 	
 	// User-select Hacks:
 	//
 	// Useful for preventing blue highlights all over everything when dragging.
-	var userSelectStyle = ';user-select: none;';
-	if (_getPrefix2['default']) {
-	  userSelectStyle += '-' + _getPrefix2['default'].toLowerCase() + '-user-select: none;';
-	}
+	var userSelectPrefix = (0, _getPrefix.getPrefix)('user-select');
+	var userSelect = (0, _getPrefix.browserPrefixToStyle)('user-select', userSelectPrefix);
+	var userSelectStyle = ';' + userSelect + ': none;';
 	
 	function addUserSelectStyles() {
 	  var style = document.body.getAttribute('style') || '';
@@ -1046,22 +1125,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	  // Workaround IE pointer events; see #51
 	  // https://github.com/mzabriskie/react-draggable/issues/51#issuecomment-103488278
-	  var touchHacks = {
+	  return _extends({
 	    touchAction: 'none'
-	  };
-	
-	  return (0, _objectAssign2['default'])(touchHacks, childStyle);
+	  }, childStyle);
 	}
 	
 	// Create an event exposed by <DraggableCore>
-	
 	function createCoreEvent(draggable, clientX, clientY) {
 	  // State changes are often (but not always!) async. We want the latest value.
 	  var state = draggable._pendingState || draggable.state;
 	  var isStart = !(0, _shims.isNum)(state.lastX);
 	
 	  return {
-	    node: _reactDom2['default'].findDOMNode(draggable),
+	    node: _reactDom2.default.findDOMNode(draggable),
 	    position: isStart ?
 	    // If this is our first move, use the clientX and clientY as last coords.
 	    {
@@ -1079,10 +1155,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	// Create an event exposed by <Draggable>
-	
 	function createUIEvent(draggable, coreEvent) {
 	  return {
-	    node: _reactDom2['default'].findDOMNode(draggable),
+	    node: _reactDom2.default.findDOMNode(draggable),
 	    position: {
 	      left: draggable.state.clientX + coreEvent.position.deltaX,
 	      top: draggable.state.clientY + coreEvent.position.deltaY
@@ -1093,13 +1168,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 7 */
+/* 6 */
 /***/ function(module, exports) {
 
-	// @credits https://gist.github.com/rogozhnikoff/a43cfed27c41e4e68cdc
 	'use strict';
 	
-	Object.defineProperty(exports, '__esModule', {
+	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 	exports.findInArray = findInArray;
@@ -1108,8 +1182,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.int = int;
 	exports.dontSetMe = dontSetMe;
 	
+	// @credits https://gist.github.com/rogozhnikoff/a43cfed27c41e4e68cdc
 	function findInArray(array, callback) {
-	  for (var i = 0, _length = array.length; i < _length; i++) {
+	  for (var i = 0, length = array.length; i < length; i++) {
 	    if (callback.apply(callback, [array[i], i, array])) return array[i];
 	  }
 	}
@@ -1133,40 +1208,74 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 /***/ },
-/* 8 */
+/* 7 */
 /***/ function(module, exports) {
 
 	'use strict';
 	
-	Object.defineProperty(exports, '__esModule', {
+	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.getPrefix = getPrefix;
+	exports.browserPrefixToKey = browserPrefixToKey;
+	exports.browserPrefixToStyle = browserPrefixToStyle;
 	
-	exports['default'] = (function () {
+	var prefixes = ['Moz', 'Webkit', 'O', 'ms'];
+	function getPrefix() {
+	  var prop = arguments.length <= 0 || arguments[0] === undefined ? 'transform' : arguments[0];
+	
 	  // Checking specifically for 'window.document' is for pseudo-browser server-side
 	  // environments that define 'window' as the global context.
 	  // E.g. React-rails (see https://github.com/reactjs/react-rails/pull/84)
 	  if (typeof window === 'undefined' || typeof window.document === 'undefined') return '';
 	
-	  // Thanks David Walsh
-	  var styles = window.getComputedStyle(document.documentElement, ''),
-	      pre = (Array.prototype.slice.call(styles).join('').match(/-(moz|webkit|ms)-/) || styles.OLink === '' && ['', 'o'])[1];
-	  // 'ms' is not titlecased
-	  if (pre === undefined || pre === null) return '';
-	  if (pre === 'ms') return pre;
-	  if (pre === undefined || pre === null) return '';
-	  return pre.slice(0, 1).toUpperCase() + pre.slice(1);
-	})();
+	  var style = window.document.documentElement.style;
 	
-	module.exports = exports['default'];
+	  if (prop in style) return '';
+	
+	  for (var i = 0; i < prefixes.length; i++) {
+	    if (browserPrefixToStyle(prop, prefixes[i]) in style) return prefixes[i];
+	  }
+	
+	  return '';
+	}
+	
+	function browserPrefixToKey(prop, prefix) {
+	  return prefix ? '' + prefix + kebabToTitleCase(prop) : prop;
+	}
+	
+	function browserPrefixToStyle(prop, prefix) {
+	  return prefix ? '-' + prefix.toLowerCase() + '-' + prop : prop;
+	}
+	
+	function kebabToTitleCase(str) {
+	  var out = '';
+	  var shouldCapitalize = true;
+	  for (var i = 0; i < str.length; i++) {
+	    if (shouldCapitalize) {
+	      out += str[i].toUpperCase();
+	      shouldCapitalize = false;
+	    } else if (str[i] === '-') {
+	      shouldCapitalize = true;
+	    } else {
+	      out += str[i];
+	    }
+	  }
+	  return out;
+	}
+	
+	// Default export is the prefix itself, like 'Moz', 'Webkit', etc
+	// Note that you may have to re-test for certain things; for instance, Chrome 50
+	// can handle unprefixed `transform`, but not unprefixed `user-select`
+	exports.default = getPrefix();
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	Object.defineProperty(exports, '__esModule', {
+	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 	exports.getBoundPosition = getBoundPosition;
@@ -1175,33 +1284,46 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.canDragY = canDragY;
 	exports.getControlPosition = getControlPosition;
 	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+	var _react = __webpack_require__(2);
 	
-	var _shims = __webpack_require__(7);
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _shims = __webpack_require__(6);
 	
 	var _reactDom = __webpack_require__(3);
 	
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 	
-	var _domFns = __webpack_require__(6);
+	var _domFns = __webpack_require__(5);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function getBoundPosition(draggable, clientX, clientY) {
 	  // If no bounds, short-circuit and move on
 	  if (!draggable.props.bounds) return [clientX, clientY];
 	
-	  var bounds = JSON.parse(JSON.stringify(draggable.props.bounds));
-	  var node = _reactDom2['default'].findDOMNode(draggable);
-	  var parent = node.parentNode;
+	  // Clone new bounds
+	  var bounds = draggable.props.bounds;
 	
-	  if (bounds === 'parent') {
+	  bounds = typeof bounds === 'string' ? bounds : cloneBounds(bounds);
+	  var node = _reactDom2.default.findDOMNode(draggable);
+	
+	  if (typeof bounds === 'string') {
+	    var boundNode = void 0;
+	    if (bounds === 'parent') {
+	      boundNode = node.parentNode;
+	    } else {
+	      boundNode = document.querySelector(bounds);
+	      if (!boundNode) throw new Error('Bounds selector "' + bounds + '" could not find an element.');
+	    }
 	    var nodeStyle = window.getComputedStyle(node);
-	    var parentStyle = window.getComputedStyle(parent);
+	    var boundNodeStyle = window.getComputedStyle(boundNode);
 	    // Compute bounds. This is a pain with padding and offsets but this gets it exactly right.
 	    bounds = {
-	      left: -node.offsetLeft + (0, _shims.int)(parentStyle.paddingLeft) + (0, _shims.int)(nodeStyle.borderLeftWidth) + (0, _shims.int)(nodeStyle.marginLeft),
-	      top: -node.offsetTop + (0, _shims.int)(parentStyle.paddingTop) + (0, _shims.int)(nodeStyle.borderTopWidth) + (0, _shims.int)(nodeStyle.marginTop),
-	      right: (0, _domFns.innerWidth)(parent) - (0, _domFns.outerWidth)(node) - node.offsetLeft,
-	      bottom: (0, _domFns.innerHeight)(parent) - (0, _domFns.outerHeight)(node) - node.offsetTop
+	      left: -node.offsetLeft + (0, _shims.int)(boundNodeStyle.paddingLeft) + (0, _shims.int)(nodeStyle.borderLeftWidth) + (0, _shims.int)(nodeStyle.marginLeft),
+	      top: -node.offsetTop + (0, _shims.int)(boundNodeStyle.paddingTop) + (0, _shims.int)(nodeStyle.borderTopWidth) + (0, _shims.int)(nodeStyle.marginTop),
+	      right: (0, _domFns.innerWidth)(boundNode) - (0, _domFns.outerWidth)(node) - node.offsetLeft,
+	      bottom: (0, _domFns.innerHeight)(boundNode) - (0, _domFns.outerHeight)(node) - node.offsetTop
 	    };
 	  }
 	
@@ -1231,7 +1353,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 	
 	// Get {clientX, clientY} positions from event.
-	
 	function getControlPosition(e) {
 	  var position = e.targetTouches && e.targetTouches[0] || e;
 	  return {
@@ -1239,42 +1360,52 @@ return /******/ (function(modules) { // webpackBootstrap
 	    clientY: position.clientY
 	  };
 	}
+	
+	// A lot faster than stringify/parse
+	function cloneBounds(bounds) {
+	  return {
+	    left: bounds.left,
+	    top: bounds.top,
+	    right: bounds.right,
+	    bottom: bounds.bottom
+	  };
+	}
 
 /***/ },
-/* 10 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	Object.defineProperty(exports, '__esModule', {
+	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 	
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 	
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-	
-	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
 	var _react = __webpack_require__(2);
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _utilsDomFns = __webpack_require__(6);
+	var _domFns = __webpack_require__(5);
 	
-	var _utilsPositionFns = __webpack_require__(9);
+	var _positionFns = __webpack_require__(8);
 	
-	var _utilsShims = __webpack_require__(7);
+	var _shims = __webpack_require__(6);
 	
-	var _utilsLog = __webpack_require__(11);
+	var _log = __webpack_require__(10);
 	
-	var _utilsLog2 = _interopRequireDefault(_utilsLog);
+	var _log2 = _interopRequireDefault(_log);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	// Simple abstraction for dragging events names.
 	var eventsFor = {
@@ -1300,23 +1431,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	// work well with libraries that require more control over the element.
 	//
 	
-	var DraggableCore = (function (_React$Component) {
+	var DraggableCore = function (_React$Component) {
 	  _inherits(DraggableCore, _React$Component);
 	
 	  function DraggableCore() {
-	    var _this = this;
+	    var _Object$getPrototypeO;
+	
+	    var _temp, _this, _ret;
 	
 	    _classCallCheck(this, DraggableCore);
 	
-	    _get(Object.getPrototypeOf(DraggableCore.prototype), 'constructor', this).apply(this, arguments);
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
 	
-	    this.state = {
+	    return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(DraggableCore)).call.apply(_Object$getPrototypeO, [this].concat(args))), _this), _this.state = {
 	      dragging: false,
 	      // Used while dragging to determine deltas.
 	      lastX: null, lastY: null
-	    };
-	
-	    this.handleDragStart = function (e) {
+	    }, _this.handleDragStart = function (e) {
 	      // Make it possible to attach event handlers on top of this one.
 	      _this.props.onMouseDown(e);
 	
@@ -1324,7 +1457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (!_this.props.allowAnyClick && typeof e.button === 'number' && e.button !== 0) return false;
 	
 	      // Short circuit if handle or cancel prop was provided and selector doesn't match.
-	      if (_this.props.disabled || _this.props.handle && !(0, _utilsDomFns.matchesSelector)(e.target, _this.props.handle) || _this.props.cancel && (0, _utilsDomFns.matchesSelector)(e.target, _this.props.cancel)) {
+	      if (_this.props.disabled || _this.props.handle && !(0, _domFns.matchesSelector)(e.target, _this.props.handle) || _this.props.cancel && (0, _domFns.matchesSelector)(e.target, _this.props.cancel)) {
 	        return;
 	      }
 	
@@ -1337,22 +1470,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	      // Add a style to the body to disable user-select. This prevents text from
 	      // being selected all over the page.
-	      if (_this.props.enableUserSelectHack) (0, _utilsDomFns.addUserSelectStyles)();
+	      if (_this.props.enableUserSelectHack) (0, _domFns.addUserSelectStyles)();
 	
 	      // Get the current drag point from the event. This is used as the offset.
 	
-	      var _getControlPosition = (0, _utilsPositionFns.getControlPosition)(e);
+	      var _getControlPosition = (0, _positionFns.getControlPosition)(e);
 	
 	      var clientX = _getControlPosition.clientX;
 	      var clientY = _getControlPosition.clientY;
 	
 	      // Create an event object with all the data parents need to make a decision here.
-	      var coreEvent = (0, _utilsDomFns.createCoreEvent)(_this, clientX, clientY);
 	
-	      (0, _utilsLog2['default'])('DraggableCore: handleDragStart: %j', coreEvent.position);
+	      var coreEvent = (0, _domFns.createCoreEvent)(_this, clientX, clientY);
+	
+	      (0, _log2.default)('DraggableCore: handleDragStart: %j', coreEvent.position);
 	
 	      // Call event handler. If it returns explicit false, cancel.
-	      (0, _utilsLog2['default'])('calling', _this.props.onStart);
+	      (0, _log2.default)('calling', _this.props.onStart);
 	      var shouldUpdate = _this.props.onStart(e, coreEvent);
 	      if (shouldUpdate === false) return;
 	
@@ -1370,30 +1504,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	      });
 	
 	      // Translate el on page scroll.
-	      (0, _utilsDomFns.addEvent)(document, 'scroll', _this.handleScroll);
+	      (0, _domFns.addEvent)(document, 'scroll', _this.handleScroll);
 	      // Add events to the document directly so we catch when the user's mouse/touch moves outside of
 	      // this element. We use different events depending on whether or not we have detected that this
 	      // is a touch-capable device.
-	      (0, _utilsDomFns.addEvent)(document, dragEventFor.move, _this.handleDrag);
-	      (0, _utilsDomFns.addEvent)(document, dragEventFor.stop, _this.handleDragStop);
-	    };
-	
-	    this.handleDrag = function (e) {
+	      (0, _domFns.addEvent)(document, dragEventFor.move, _this.handleDrag);
+	      (0, _domFns.addEvent)(document, dragEventFor.stop, _this.handleDragStop);
+	    }, _this.handleDrag = function (e) {
 	      // Return if this is a touch event, but not the correct one for this element
 	      if (e.targetTouches && e.targetTouches[0].identifier !== _this.state.touchIdentifier) return;
 	      if (_this.props.disabled) return;
 	
-	      var _getControlPosition2 = (0, _utilsPositionFns.getControlPosition)(e);
+	      var _getControlPosition2 = (0, _positionFns.getControlPosition)(e);
 	
 	      var clientX = _getControlPosition2.clientX;
 	      var clientY = _getControlPosition2.clientY;
 	
 	      // Snap to grid if prop has been provided
+	
 	      if (Array.isArray(_this.props.grid)) {
 	        var deltaX = clientX - _this.state.lastX,
 	            deltaY = clientY - _this.state.lastY;
 	
-	        var _snapToGrid = (0, _utilsPositionFns.snapToGrid)(_this.props.grid, deltaX, deltaY);
+	        var _snapToGrid = (0, _positionFns.snapToGrid)(_this.props.grid, deltaX, deltaY);
 	
 	        var _snapToGrid2 = _slicedToArray(_snapToGrid, 2);
 	
@@ -1404,9 +1537,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        clientX = _this.state.lastX + deltaX, clientY = _this.state.lastY + deltaY;
 	      }
 	
-	      var coreEvent = (0, _utilsDomFns.createCoreEvent)(_this, clientX, clientY);
+	      var coreEvent = (0, _domFns.createCoreEvent)(_this, clientX, clientY);
 	
-	      (0, _utilsLog2['default'])('DraggableCore: handleDrag: %j', coreEvent.position);
+	      (0, _log2.default)('DraggableCore: handleDrag: %j', coreEvent.position);
 	
 	      // Call event handler. If it returns explicit false, trigger end.
 	      var shouldUpdate = _this.props.onDrag(e, coreEvent);
@@ -1419,9 +1552,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        lastX: clientX,
 	        lastY: clientY
 	      });
-	    };
-	
-	    this.handleDragStop = function (e) {
+	    }, _this.handleDragStop = function (e) {
 	      if (!_this.state.dragging) return;
 	
 	      // Short circuit if this is not the correct touch event. `changedTouches` contains all
@@ -1429,16 +1560,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	      if (e.changedTouches && e.changedTouches[0].identifier !== _this.state.touchIdentifier) return;
 	
 	      // Remove user-select hack
-	      if (_this.props.enableUserSelectHack) (0, _utilsDomFns.removeUserSelectStyles)();
+	      if (_this.props.enableUserSelectHack) (0, _domFns.removeUserSelectStyles)();
 	
-	      var _getControlPosition3 = (0, _utilsPositionFns.getControlPosition)(e);
+	      var _getControlPosition3 = (0, _positionFns.getControlPosition)(e);
 	
 	      var clientX = _getControlPosition3.clientX;
 	      var clientY = _getControlPosition3.clientY;
 	
-	      var coreEvent = (0, _utilsDomFns.createCoreEvent)(_this, clientX, clientY);
+	      var coreEvent = (0, _domFns.createCoreEvent)(_this, clientX, clientY);
 	
-	      (0, _utilsLog2['default'])('DraggableCore: handleDragStop: %j', coreEvent.position);
+	      (0, _log2.default)('DraggableCore: handleDragStop: %j', coreEvent.position);
 	
 	      // Reset the el.
 	      _this.setState({
@@ -1451,47 +1582,47 @@ return /******/ (function(modules) { // webpackBootstrap
 	      _this.props.onStop(e, coreEvent);
 	
 	      // Remove event handlers
-	      (0, _utilsLog2['default'])('DraggableCore: Removing handlers');
-	      (0, _utilsDomFns.removeEvent)(document, 'scroll', _this.handleScroll);
-	      (0, _utilsDomFns.removeEvent)(document, dragEventFor.move, _this.handleDrag);
-	      (0, _utilsDomFns.removeEvent)(document, dragEventFor.stop, _this.handleDragStop);
-	    };
-	
-	    this.handleScroll = function (e) {
+	      (0, _log2.default)('DraggableCore: Removing handlers');
+	      (0, _domFns.removeEvent)(document, 'scroll', _this.handleScroll);
+	      (0, _domFns.removeEvent)(document, dragEventFor.move, _this.handleDrag);
+	      (0, _domFns.removeEvent)(document, dragEventFor.stop, _this.handleDragStop);
+	    }, _this.handleScroll = function (e) {
 	      var s = _this.state,
 	          x = document.body.scrollLeft,
 	          y = document.body.scrollTop;
 	
 	      // Create the usual event, but make the scroll offset our deltas.
-	      var coreEvent = (0, _utilsDomFns.createCoreEvent)(_this);
+	      var coreEvent = (0, _domFns.createCoreEvent)(_this);
 	      coreEvent.position.deltaX = x - s.scrollX;
 	      coreEvent.position.deltaY = y - s.scrollY;
 	
 	      _this.setState({
 	        lastX: s.lastX + coreEvent.position.deltaX,
-	        lastY: s.lastY + coreEvent.position.deltaY
+	        lastY: s.lastY + coreEvent.position.deltaY,
+	        scrollX: x,
+	        scrollY: y
 	      });
 	
 	      _this.props.onDrag(e, coreEvent);
-	    };
-	
-	    this.onMouseDown = function (e) {
-	      // HACK: Prevent 'ghost click' which happens 300ms after touchstart if the event isn't cancelled.
-	      // We don't cancel the event on touchstart because of #37; we might want to make a scrollable item draggable.
-	      // More on ghost clicks: http://ariatemplates.com/blog/2014/05/ghost-clicks-in-mobile-browsers/
-	      if (dragEventFor === eventsFor.touch) {
-	        return e.preventDefault();
-	      }
+	    }, _this.onMouseDown = function (e) {
+	      dragEventFor = eventsFor.mouse; // on touchscreen laptops we could switch back to mouse
 	
 	      return _this.handleDragStart(e);
-	    };
+	    }, _this.onMouseUp = function (e) {
+	      dragEventFor = eventsFor.mouse;
 	
-	    this.onTouchStart = function (e) {
+	      return _this.handleDragStop(e);
+	    }, _this.onTouchStart = function (e) {
 	      // We're on a touch device now, so change the event handlers
 	      dragEventFor = eventsFor.touch;
 	
 	      return _this.handleDragStart(e);
-	    };
+	    }, _this.onTouchEnd = function (e) {
+	      // We're on a touch device now, so change the event handlers
+	      dragEventFor = eventsFor.touch;
+	
+	      return _this.handleDragStop(e);
+	    }, _temp), _possibleConstructorReturn(_this, _ret);
 	  }
 	
 	  _createClass(DraggableCore, [{
@@ -1499,243 +1630,233 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: function componentWillUnmount() {
 	      // Remove any leftover event handlers. Remove both touch and mouse handlers in case
 	      // some browser quirk caused a touch event to fire during a mouse move, or vice versa.
-	      (0, _utilsDomFns.removeEvent)(document, eventsFor.mouse.move, this.handleDrag);
-	      (0, _utilsDomFns.removeEvent)(document, eventsFor.touch.move, this.handleDrag);
-	      (0, _utilsDomFns.removeEvent)(document, eventsFor.mouse.stop, this.handleDragStop);
-	      (0, _utilsDomFns.removeEvent)(document, eventsFor.touch.stop, this.handleDragStop);
-	      (0, _utilsDomFns.removeEvent)(document, 'scroll', this.handleScroll);
-	      if (this.props.enableUserSelectHack) (0, _utilsDomFns.removeUserSelectStyles)();
+	      (0, _domFns.removeEvent)(document, eventsFor.mouse.move, this.handleDrag);
+	      (0, _domFns.removeEvent)(document, eventsFor.touch.move, this.handleDrag);
+	      (0, _domFns.removeEvent)(document, eventsFor.mouse.stop, this.handleDragStop);
+	      (0, _domFns.removeEvent)(document, eventsFor.touch.stop, this.handleDragStop);
+	      (0, _domFns.removeEvent)(document, 'scroll', this.handleScroll);
+	      if (this.props.enableUserSelectHack) (0, _domFns.removeUserSelectStyles)();
 	    }
+	
+	    // When the user scrolls, adjust internal state so the draggable moves along the page properly.
+	    // This only fires when a drag is active.
+	
+	
+	    // Same as onMouseDown (start drag), but now consider this a touch device.
+	
 	  }, {
 	    key: 'render',
 	    value: function render() {
 	      // Reuse the child provided
 	      // This makes it flexible to use whatever element is wanted (div, ul, etc)
-	      return _react2['default'].cloneElement(_react2['default'].Children.only(this.props.children), {
-	        style: (0, _utilsDomFns.styleHacks)(this.props.children.props.style),
+	      return _react2.default.cloneElement(_react2.default.Children.only(this.props.children), {
+	        style: (0, _domFns.styleHacks)(this.props.children.props.style),
 	
 	        // Note: mouseMove handler is attached to document so it will still function
 	        // when the user drags quickly and leaves the bounds of the element.
 	        onMouseDown: this.onMouseDown,
 	        onTouchStart: this.onTouchStart,
-	        onMouseUp: this.handleDragStop,
-	        onTouchEnd: this.handleDragStop
+	        onMouseUp: this.onMouseUp,
+	        onTouchEnd: this.onTouchEnd
 	      });
 	    }
-	  }], [{
-	    key: 'displayName',
-	    value: 'DraggableCore',
-	    enumerable: true
-	  }, {
-	    key: 'propTypes',
-	    value: {
-	      /**
-	       * `allowAnyClick` allows dragging using any mouse button.
-	       * By default, we only accept the left button.
-	       *
-	       * Defaults to `false`.
-	       */
-	      allowAnyClick: _react.PropTypes.bool,
-	
-	      /**
-	       * `disabled`, if true, stops the <Draggable> from dragging. All handlers,
-	       * with the exception of `onMouseDown`, will not fire.
-	       *
-	       * Example:
-	       *
-	       * ```jsx
-	       *   let App = React.createClass({
-	       *       render: function () {
-	       *           return (
-	       *               <Draggable disabled={true}>
-	       *                   <div>I can't be dragged</div>
-	       *               </Draggable>
-	       *           );
-	       *       }
-	       *   });
-	       * ```
-	       */
-	      disabled: _react.PropTypes.bool,
-	
-	      /**
-	       * By default, we add 'user-select:none' attributes to the document body
-	       * to prevent ugly text selection during drag. If this is causing problems
-	       * for your app, set this to `false`.
-	       */
-	      enableUserSelectHack: _react.PropTypes.bool,
-	
-	      /**
-	       * `grid` specifies the x and y that dragging should snap to.
-	       *
-	       * Example:
-	       *
-	       * ```jsx
-	       *   let App = React.createClass({
-	       *       render: function () {
-	       *           return (
-	       *               <Draggable grid={[25, 25]}>
-	       *                   <div>I snap to a 25 x 25 grid</div>
-	       *               </Draggable>
-	       *           );
-	       *       }
-	       *   });
-	       * ```
-	       */
-	      grid: _react.PropTypes.arrayOf(_react.PropTypes.number),
-	
-	      /**
-	       * `handle` specifies a selector to be used as the handle that initiates drag.
-	       *
-	       * Example:
-	       *
-	       * ```jsx
-	       *   let App = React.createClass({
-	       *       render: function () {
-	       *         return (
-	       *            <Draggable handle=".handle">
-	       *              <div>
-	       *                  <div className="handle">Click me to drag</div>
-	       *                  <div>This is some other content</div>
-	       *              </div>
-	       *           </Draggable>
-	       *         );
-	       *       }
-	       *   });
-	       * ```
-	       */
-	      handle: _react.PropTypes.string,
-	
-	      /**
-	       * `cancel` specifies a selector to be used to prevent drag initialization.
-	       *
-	       * Example:
-	       *
-	       * ```jsx
-	       *   let App = React.createClass({
-	       *       render: function () {
-	       *           return(
-	       *               <Draggable cancel=".cancel">
-	       *                   <div>
-	       *                     <div className="cancel">You can't drag from here</div>
-	       *            <div>Dragging here works fine</div>
-	       *                   </div>
-	       *               </Draggable>
-	       *           );
-	       *       }
-	       *   });
-	       * ```
-	       */
-	      cancel: _react.PropTypes.string,
-	
-	      /**
-	       * Called when dragging starts.
-	       * If this function returns the boolean false, dragging will be canceled.
-	       *
-	       * Example:
-	       *
-	       * ```js
-	       *  function (event, ui) {}
-	       * ```
-	       *
-	       * `event` is the Event that was triggered.
-	       * `ui` is an object:
-	       *
-	       * ```js
-	       *  {
-	       *    position: {top: 0, left: 0}
-	       *  }
-	       * ```
-	       */
-	      onStart: _react.PropTypes.func,
-	
-	      /**
-	       * Called while dragging.
-	       * If this function returns the boolean false, dragging will be canceled.
-	       *
-	       * Example:
-	       *
-	       * ```js
-	       *  function (event, ui) {}
-	       * ```
-	       *
-	       * `event` is the Event that was triggered.
-	       * `ui` is an object:
-	       *
-	       * ```js
-	       *  {
-	       *    position: {top: 0, left: 0}
-	       *  }
-	       * ```
-	       */
-	      onDrag: _react.PropTypes.func,
-	
-	      /**
-	       * Called when dragging stops.
-	       *
-	       * Example:
-	       *
-	       * ```js
-	       *  function (event, ui) {}
-	       * ```
-	       *
-	       * `event` is the Event that was triggered.
-	       * `ui` is an object:
-	       *
-	       * ```js
-	       *  {
-	       *    position: {top: 0, left: 0}
-	       *  }
-	       * ```
-	       */
-	      onStop: _react.PropTypes.func,
-	
-	      /**
-	       * A workaround option which can be passed if onMouseDown needs to be accessed,
-	       * since it'll always be blocked (due to that there's internal use of onMouseDown)
-	       */
-	      onMouseDown: _react.PropTypes.func,
-	
-	      /**
-	       * These properties should be defined on the child, not here.
-	       */
-	      className: _utilsShims.dontSetMe,
-	      style: _utilsShims.dontSetMe,
-	      transform: _utilsShims.dontSetMe
-	    },
-	    enumerable: true
-	  }, {
-	    key: 'defaultProps',
-	    value: {
-	      allowAnyClick: false, // by default only accept left click
-	      cancel: null,
-	      disabled: false,
-	      enableUserSelectHack: true,
-	      handle: null,
-	      grid: null,
-	      transform: null,
-	      onStart: function onStart() {},
-	      onDrag: function onDrag() {},
-	      onStop: function onStop() {},
-	      onMouseDown: function onMouseDown() {}
-	    },
-	    enumerable: true
 	  }]);
 	
 	  return DraggableCore;
-	})(_react2['default'].Component);
+	}(_react2.default.Component);
 	
-	exports['default'] = DraggableCore;
-	module.exports = exports['default'];
-
-	// When the user scrolls, adjust internal state so the draggable moves along the page properly.
-	// This only fires when a drag is active.
-
-	// On mousedown, consider the drag started.
-
-	// Same as onMouseDown (start drag), but now consider this a touch device.
+	DraggableCore.displayName = 'DraggableCore';
+	DraggableCore.propTypes = {
+	  /**
+	   * `allowAnyClick` allows dragging using any mouse button.
+	   * By default, we only accept the left button.
+	   *
+	   * Defaults to `false`.
+	   */
+	  allowAnyClick: _react.PropTypes.bool,
+	
+	  /**
+	   * `disabled`, if true, stops the <Draggable> from dragging. All handlers,
+	   * with the exception of `onMouseDown`, will not fire.
+	   *
+	   * Example:
+	   *
+	   * ```jsx
+	   *   let App = React.createClass({
+	   *       render: function () {
+	   *           return (
+	   *               <Draggable disabled={true}>
+	   *                   <div>I can't be dragged</div>
+	   *               </Draggable>
+	   *           );
+	   *       }
+	   *   });
+	   * ```
+	   */
+	  disabled: _react.PropTypes.bool,
+	
+	  /**
+	   * By default, we add 'user-select:none' attributes to the document body
+	   * to prevent ugly text selection during drag. If this is causing problems
+	   * for your app, set this to `false`.
+	   */
+	  enableUserSelectHack: _react.PropTypes.bool,
+	
+	  /**
+	   * `grid` specifies the x and y that dragging should snap to.
+	   *
+	   * Example:
+	   *
+	   * ```jsx
+	   *   let App = React.createClass({
+	   *       render: function () {
+	   *           return (
+	   *               <Draggable grid={[25, 25]}>
+	   *                   <div>I snap to a 25 x 25 grid</div>
+	   *               </Draggable>
+	   *           );
+	   *       }
+	   *   });
+	   * ```
+	   */
+	  grid: _react.PropTypes.arrayOf(_react.PropTypes.number),
+	
+	  /**
+	   * `handle` specifies a selector to be used as the handle that initiates drag.
+	   *
+	   * Example:
+	   *
+	   * ```jsx
+	   *   let App = React.createClass({
+	   *       render: function () {
+	   *         return (
+	   *            <Draggable handle=".handle">
+	   *              <div>
+	   *                  <div className="handle">Click me to drag</div>
+	   *                  <div>This is some other content</div>
+	   *              </div>
+	   *           </Draggable>
+	   *         );
+	   *       }
+	   *   });
+	   * ```
+	   */
+	  handle: _react.PropTypes.string,
+	
+	  /**
+	   * `cancel` specifies a selector to be used to prevent drag initialization.
+	   *
+	   * Example:
+	   *
+	   * ```jsx
+	   *   let App = React.createClass({
+	   *       render: function () {
+	   *           return(
+	   *               <Draggable cancel=".cancel">
+	   *                   <div>
+	   *                     <div className="cancel">You can't drag from here</div>
+	   *            <div>Dragging here works fine</div>
+	   *                   </div>
+	   *               </Draggable>
+	   *           );
+	   *       }
+	   *   });
+	   * ```
+	   */
+	  cancel: _react.PropTypes.string,
+	
+	  /**
+	   * Called when dragging starts.
+	   * If this function returns the boolean false, dragging will be canceled.
+	   *
+	   * Example:
+	   *
+	   * ```js
+	   *  function (event, ui) {}
+	   * ```
+	   *
+	   * `event` is the Event that was triggered.
+	   * `ui` is an object:
+	   *
+	   * ```js
+	   *  {
+	   *    position: {top: 0, left: 0}
+	   *  }
+	   * ```
+	   */
+	  onStart: _react.PropTypes.func,
+	
+	  /**
+	   * Called while dragging.
+	   * If this function returns the boolean false, dragging will be canceled.
+	   *
+	   * Example:
+	   *
+	   * ```js
+	   *  function (event, ui) {}
+	   * ```
+	   *
+	   * `event` is the Event that was triggered.
+	   * `ui` is an object:
+	   *
+	   * ```js
+	   *  {
+	   *    position: {top: 0, left: 0}
+	   *  }
+	   * ```
+	   */
+	  onDrag: _react.PropTypes.func,
+	
+	  /**
+	   * Called when dragging stops.
+	   *
+	   * Example:
+	   *
+	   * ```js
+	   *  function (event, ui) {}
+	   * ```
+	   *
+	   * `event` is the Event that was triggered.
+	   * `ui` is an object:
+	   *
+	   * ```js
+	   *  {
+	   *    position: {top: 0, left: 0}
+	   *  }
+	   * ```
+	   */
+	  onStop: _react.PropTypes.func,
+	
+	  /**
+	   * A workaround option which can be passed if onMouseDown needs to be accessed,
+	   * since it'll always be blocked (due to that there's internal use of onMouseDown)
+	   */
+	  onMouseDown: _react.PropTypes.func,
+	
+	  /**
+	   * These properties should be defined on the child, not here.
+	   */
+	  className: _shims.dontSetMe,
+	  style: _shims.dontSetMe,
+	  transform: _shims.dontSetMe
+	};
+	DraggableCore.defaultProps = {
+	  allowAnyClick: false, // by default only accept left click
+	  cancel: null,
+	  disabled: false,
+	  enableUserSelectHack: true,
+	  handle: null,
+	  grid: null,
+	  transform: null,
+	  onStart: function onStart() {},
+	  onDrag: function onDrag() {},
+	  onStop: function onStop() {},
+	  onMouseDown: function onMouseDown() {}
+	};
+	exports.default = DraggableCore;
 
 /***/ },
-/* 11 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1743,13 +1864,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports["default"] = log;
-	
+	exports.default = log;
 	function log() {
-	  if ((undefined)) console.log.apply(console, arguments);
-	}
+	  var _console;
 	
-	module.exports = exports["default"];
+	  if ((undefined)) (_console = console).log.apply(_console, arguments);
+	}
 
 /***/ }
 /******/ ])
@@ -1759,7 +1879,13 @@ return /******/ (function(modules) { // webpackBootstrap
 },{"react":164,"react-dom":4}],7:[function(require,module,exports){
 'use strict';
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 
 var _createClass = function () {
   function defineProperties(target, props) {
@@ -1771,17 +1897,9 @@ var _createClass = function () {
   };
 }();
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
-
-var _Object = require('react/lib/Object.assign');
-
-var _Object2 = _interopRequireDefault(_Object);
 
 var _resizer = require('./resizer');
 
@@ -1809,9 +1927,9 @@ function _inherits(subClass, superClass) {
   }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 }
 
-function clamp(n, min, max) {
+var clamp = function clamp(n, min, max) {
   return Math.max(Math.min(n, max), min);
-}
+};
 
 var Risizable = function (_Component) {
   _inherits(Risizable, _Component);
@@ -1830,50 +1948,9 @@ var Risizable = function (_Component) {
       height: height
     };
 
-    var onTouchMove = function onTouchMove(event) {
-      return _this.onMouseMove(event.touches[0]);
-    };
-
-    var onMouseMove = function onMouseMove(_ref) {
-      var clientX = _ref.clientX;
-      var clientY = _ref.clientY;
-      var _this$state = _this.state;
-      var direction = _this$state.direction;
-      var original = _this$state.original;
-      var isActive = _this$state.isActive;
-      var _this$props = _this.props;
-      var minWidth = _this$props.minWidth;
-      var maxWidth = _this$props.maxWidth;
-      var minHeight = _this$props.minHeight;
-      var maxHeight = _this$props.maxHeight;
-
-      if (!isActive) return;
-      if (direction.indexOf('x') !== -1) {
-        var newWidth = original.width + clientX - original.x;
-        var min = minWidth < 0 || minWidth === undefined ? 0 : minWidth;
-        var max = maxWidth < 0 || maxWidth === undefined ? newWidth : maxWidth;
-        _this.setState({ width: clamp(newWidth, min, max) });
-      }
-      if (direction.indexOf('y') !== -1) {
-        var newHeight = original.height + clientY - original.y;
-        var min = minHeight < 0 || minHeight === undefined ? 0 : minHeight;
-        var max = maxHeight < 0 || maxHeight === undefined ? newHeight : maxHeight;
-        _this.setState({ height: clamp(newHeight, min, max) });
-      }
-      if (_this.props.onResize) _this.props.onResize({ width: _this.state.width, height: _this.state.height });
-    };
-
-    var onMouseUp = function onMouseUp() {
-      if (!_this.state.isActive) return;
-      if (_this.props.onResizeStop) {
-        _this.props.onResizeStop({ width: _this.state.width, height: _this.state.height });
-      }
-      _this.setState({ isActive: false });
-    };
-
-    _this.onTouchMove = onTouchMove.bind(_this);
-    _this.onMouseMove = onMouseMove.bind(_this);
-    _this.onMouseUp = onMouseUp.bind(_this);
+    _this.onTouchMove = _this.onTouchMove.bind(_this);
+    _this.onMouseMove = _this.onMouseMove.bind(_this);
+    _this.onMouseUp = _this.onMouseUp.bind(_this);
 
     window.addEventListener('mouseup', _this.onMouseUp);
     window.addEventListener('mousemove', _this.onMouseMove);
@@ -1883,6 +1960,21 @@ var Risizable = function (_Component) {
   }
 
   _createClass(Risizable, [{
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      var size = this.getBoxSize();
+      this.setSize(size);
+    }
+  }, {
+    key: 'componentWillReceiveProps',
+    value: function componentWillReceiveProps(_ref) {
+      var width = _ref.width;
+      var height = _ref.height;
+
+      if (width !== this.props.width) this.setState({ width: width });
+      if (height !== this.props.height) this.setState({ height: height });
+    }
+  }, {
     key: 'componentWillUnmount',
     value: function componentWillUnmount() {
       window.removeEventListener('mouseup', this.onMouseUp);
@@ -1891,51 +1983,191 @@ var Risizable = function (_Component) {
       window.removeEventListener('touchend', this.onMouseUp);
     }
   }, {
+    key: 'onTouchMove',
+    value: function onTouchMove(event) {
+      this.onMouseMove(event.touches[0]);
+    }
+  }, {
+    key: 'onMouseMove',
+    value: function onMouseMove(_ref2) {
+      var clientX = _ref2.clientX;
+      var clientY = _ref2.clientY;
+      var _state = this.state;
+      var direction = _state.direction;
+      var original = _state.original;
+      var isActive = _state.isActive;
+      var _props = this.props;
+      var minWidth = _props.minWidth;
+      var maxWidth = _props.maxWidth;
+      var minHeight = _props.minHeight;
+      var maxHeight = _props.maxHeight;
+
+      if (!isActive) return;
+      var newWidth = original.width;
+      var newHeight = original.height;
+      if (/right/i.test(direction)) {
+        newWidth = original.width + clientX - original.x;
+        var min = minWidth < 0 || typeof minWidth === 'undefined' ? 0 : minWidth;
+        var max = maxWidth < 0 || typeof maxWidth === 'undefined' ? newWidth : maxWidth;
+        newWidth = clamp(newWidth, min, max);
+      }
+      if (/left/i.test(direction)) {
+        newWidth = original.width - clientX + original.x;
+        var _min = minWidth < 0 || typeof minWidth === 'undefined' ? 0 : minWidth;
+        var _max = maxWidth < 0 || typeof maxWidth === 'undefined' ? newWidth : maxWidth;
+        newWidth = clamp(newWidth, _min, _max);
+      }
+      if (/bottom/i.test(direction)) {
+        newHeight = original.height + clientY - original.y;
+        var _min2 = minHeight < 0 || typeof minHeight === 'undefined' ? 0 : minHeight;
+        var _max2 = maxHeight < 0 || typeof maxHeight === 'undefined' ? newHeight : maxHeight;
+        newHeight = clamp(newHeight, _min2, _max2);
+      }
+      if (/top/i.test(direction)) {
+        newHeight = original.height - clientY + original.y;
+        var _min3 = minHeight < 0 || typeof minHeight === 'undefined' ? 0 : minHeight;
+        var _max3 = maxHeight < 0 || typeof maxHeight === 'undefined' ? newHeight : maxHeight;
+        newHeight = clamp(newHeight, _min3, _max3);
+      }
+      this.setState({ width: newWidth, height: newHeight });
+      var resizable = this.refs.resizable;
+      var styleSize = {
+        width: newWidth || this.state.width,
+        height: newHeight || this.state.height
+      };
+      var clientSize = {
+        width: resizable.clientWidth,
+        height: resizable.clientHeight
+      };
+      var delta = {
+        width: newWidth - original.width,
+        height: newHeight - original.height
+      };
+      this.props.onResize(direction, styleSize, clientSize, delta);
+    }
+  }, {
+    key: 'onMouseUp',
+    value: function onMouseUp() {
+      var _state2 = this.state;
+      var isActive = _state2.isActive;
+      var direction = _state2.direction;
+      var original = _state2.original;
+
+      if (!isActive) return;
+      var resizable = this.refs.resizable;
+      var styleSize = this.getBoxSize();
+      var clientSize = {
+        width: resizable.clientWidth,
+        height: resizable.clientHeight
+      };
+      var delta = {
+        width: styleSize.width - original.width,
+        height: styleSize.height - original.height
+      };
+      this.props.onResizeStop(direction, styleSize, clientSize, delta);
+      this.setState({ isActive: false });
+    }
+  }, {
     key: 'onResizeStart',
     value: function onResizeStart(direction, e) {
-      if (this.props.onResizeStart) this.props.onResizeStart(direction, e);
-      if (window.getComputedStyle === undefined) {
-        console.warn("This browser not support window.getComputedStyle, react-resizable-box need it");
-        return;
-      }
-      var style = window.getComputedStyle(this.refs.resizable, null);
-      var width = ~ ~style.getPropertyValue("width").replace('px', '');
-      var height = ~ ~style.getPropertyValue("height").replace('px', '');
+      var clientSize = {
+        width: this.refs.resizable.clientWidth,
+        height: this.refs.resizable.clientHeight
+      };
+      this.props.onResizeStart(direction, this.getBoxSize(), clientSize, e);
+      var size = this.getBoxSize();
       this.setState({
         original: {
           x: e.clientX,
           y: e.clientY,
-          width: width,
-          height: height
+          width: size.width,
+          height: size.height
         },
         isActive: true,
         direction: direction
       });
     }
   }, {
+    key: 'getBoxSize',
+    value: function getBoxSize() {
+      var style = window.getComputedStyle(this.refs.resizable, null);
+      var width = ~ ~style.getPropertyValue('width').replace('px', '');
+      var height = ~ ~style.getPropertyValue('height').replace('px', '');
+      return { width: width, height: height };
+    }
+  }, {
+    key: 'setSize',
+    value: function setSize(size) {
+      this.setState({
+        width: this.state.width || size.width,
+        height: this.state.height || size.height
+      });
+    }
+  }, {
+    key: 'getBoxStyle',
+    value: function getBoxStyle() {
+      var _this2 = this;
+
+      var getSize = function getSize(key) {
+        if (typeof _this2.state[key] === 'undefined') return 'auto';else if (/px$/.test(_this2.state[key].toString())) return _this2.state[key];else if (/%$/.test(_this2.state[key].toString())) return _this2.state[key];
+        return _this2.state[key] + 'px';
+      };
+      return {
+        width: getSize('width'),
+        height: getSize('height')
+      };
+    }
+  }, {
+    key: 'renderResizer',
+    value: function renderResizer() {
+      var _this3 = this;
+
+      var _props2 = this.props;
+      var isResizable = _props2.isResizable;
+      var handleStyle = _props2.handleStyle;
+
+      return Object.keys(isResizable).map(function (dir) {
+        var onResizeStart = _this3.onResizeStart.bind(_this3, dir);
+        if (isResizable[dir] !== false) {
+          return _react2.default.createElement(_resizer2.default, {
+            key: dir,
+            type: dir,
+            onResizeStart: onResizeStart,
+            replaceStyles: handleStyle[dir]
+          });
+        }
+        return null;
+      });
+    }
+  }, {
     key: 'render',
     value: function render() {
-      var style = {
-        width: this.state.width ? this.state.width + 'px' : '',
-        height: this.state.height ? this.state.height + 'px' : ''
-      };
-      var isResizable = this.props.isResizable === undefined ? { x: true, y: true, xy: true } : this.props.isResizable;
-      return _react2.default.createElement('div', { ref: 'resizable',
-        style: (0, _Object2.default)({ position: "relative" }, this.props.customStyle, style),
-        className: this.props.customClass,
-        onClick: this.props.onClick,
-        onMouseDown: this.props.onMouseDown,
-        onDoubleClick: this.props.onDoubleClick,
-        onTouchStart: this.props.onTouchStart }, this.props.children, isResizable.x !== false ? _react2.default.createElement(_resizer2.default, { type: 'x', onResizeStart: this.onResizeStart.bind(this, 'x') }) : '', isResizable.y !== false ? _react2.default.createElement(_resizer2.default, { type: 'y', onResizeStart: this.onResizeStart.bind(this, 'y') }) : '', isResizable.xy !== false ? _react2.default.createElement(_resizer2.default, { type: 'xy', onResizeStart: this.onResizeStart.bind(this, 'xy') }) : '');
+      var style = this.getBoxStyle();
+      var _props3 = this.props;
+      var onClick = _props3.onClick;
+      var customStyle = _props3.customStyle;
+      var customClass = _props3.customClass;
+      var onMouseDown = _props3.onMouseDown;
+      var onDoubleClick = _props3.onDoubleClick;
+      var onTouchStart = _props3.onTouchStart;
+
+      return _react2.default.createElement('div', {
+        ref: 'resizable',
+        style: _extends({ position: 'relative' }, customStyle, style),
+        className: customClass,
+        onClick: onClick,
+        onMouseDown: onMouseDown,
+        onDoubleClick: onDoubleClick,
+        onTouchStart: onTouchStart
+      }, this.props.children, this.renderResizer());
     }
   }]);
 
   return Risizable;
 }(_react.Component);
 
-exports.default = Risizable;
-
 Risizable.propTypes = {
+  children: _react.PropTypes.any,
   onClick: _react.PropTypes.func,
   onDoubleClick: _react.PropTypes.func,
   onMouseDown: _react.PropTypes.func,
@@ -1944,20 +2176,72 @@ Risizable.propTypes = {
   onTouchStart: _react.PropTypes.func,
   onResize: _react.PropTypes.func,
   customStyle: _react.PropTypes.object,
-  isResizable: _react.PropTypes.object,
+  handleStyle: _react.PropTypes.shape({
+    top: _react.PropTypes.object,
+    right: _react.PropTypes.object,
+    bottom: _react.PropTypes.object,
+    left: _react.PropTypes.object,
+    topRight: _react.PropTypes.object,
+    bottomRight: _react.PropTypes.object,
+    bottomLeft: _react.PropTypes.object,
+    topLeft: _react.PropTypes.object
+  }),
+  isResizable: _react.PropTypes.shape({
+    top: _react.PropTypes.bool,
+    right: _react.PropTypes.bool,
+    bottom: _react.PropTypes.bool,
+    left: _react.PropTypes.bool,
+    topRight: _react.PropTypes.bool,
+    bottomRight: _react.PropTypes.bool,
+    bottomLeft: _react.PropTypes.bool,
+    topLeft: _react.PropTypes.bool
+  }),
   customClass: _react.PropTypes.string,
-  width: _react.PropTypes.number,
-  height: _react.PropTypes.number,
+  width: _react.PropTypes.oneOfType([_react.PropTypes.number, _react.PropTypes.string]),
+  height: _react.PropTypes.oneOfType([_react.PropTypes.number, _react.PropTypes.string]),
   minWidth: _react.PropTypes.number,
   minHeight: _react.PropTypes.number,
   maxWidth: _react.PropTypes.number,
   maxHeight: _react.PropTypes.number
 };
+Risizable.defaultProps = {
+  onResizeStart: function onResizeStart() {
+    return null;
+  },
+  onResize: function onResize() {
+    return null;
+  },
+  onResizeStop: function onResizeStop() {
+    return null;
+  },
+  isResizable: {
+    top: true, right: true, bottom: true, left: true,
+    topRight: true, bottomRight: true, bottomLeft: true, topLeft: true
+  },
+  customStyle: {},
+  handleStyle: {}
+};
+exports.default = Risizable;
+module.exports = exports['default'];
 
-},{"./resizer":8,"react":164,"react/lib/Object.assign":30}],8:[function(require,module,exports){
+},{"./resizer":8,"react":164}],8:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _extends = Object.assign || function (target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = arguments[i];for (var key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        target[key] = source[key];
+      }
+    }
+  }return target;
+};
 
 var _createClass = function () {
   function defineProperties(target, props) {
@@ -1968,10 +2252,6 @@ var _createClass = function () {
     if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
   };
 }();
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 
 var _react = require('react');
 
@@ -1999,61 +2279,114 @@ function _inherits(subClass, superClass) {
   }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 }
 
-var Risizer = function (_React$Component) {
-  _inherits(Risizer, _React$Component);
+var styles = {
+  base: {
+    position: 'absolute'
+  },
+  top: {
+    width: '100%',
+    height: '10px',
+    top: '-5px',
+    left: 0,
+    cursor: 'row-resize'
+  },
+  right: {
+    width: '10px',
+    height: '100%',
+    top: '0px',
+    right: '-5px',
+    cursor: 'col-resize'
+  },
+  bottom: {
+    width: '100%',
+    height: '10px',
+    bottom: '-5px',
+    left: 0,
+    cursor: 'row-resize'
+  },
+  left: {
+    width: '10px',
+    height: '100%',
+    top: '0px',
+    left: '-5px',
+    cursor: 'col-resize'
+  },
+  topRight: {
+    width: '20px',
+    height: '20px',
+    position: 'absolute',
+    right: '-10px',
+    top: '-10px',
+    cursor: 'sw-resize'
+  },
+  bottomRight: {
+    width: '20px',
+    height: '20px',
+    position: 'absolute',
+    right: '-10px',
+    bottom: '-10px',
+    cursor: 'nw-resize'
+  },
+  bottomLeft: {
+    width: '20px',
+    height: '20px',
+    position: 'absolute',
+    left: '-10px',
+    bottom: '-10px',
+    cursor: 'ne-resize'
+  },
+  topLeft: {
+    width: '20px',
+    height: '20px',
+    position: 'absolute',
+    left: '-10px',
+    top: '-10px',
+    cursor: 'se-resize'
+  }
+};
 
-  function Risizer(props) {
-    _classCallCheck(this, Risizer);
+var Resizer = function (_Component) {
+  _inherits(Resizer, _Component);
 
-    return _possibleConstructorReturn(this, Object.getPrototypeOf(Risizer).call(this, props));
+  function Resizer() {
+    _classCallCheck(this, Resizer);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(Resizer).apply(this, arguments));
   }
 
-  _createClass(Risizer, [{
+  _createClass(Resizer, [{
     key: 'onTouchStart',
     value: function onTouchStart(event) {
       this.props.onResizeStart(event.touches[0]);
     }
   }, {
+    key: 'getStyle',
+    value: function getStyle() {
+      if (this.props.replaceStyles) return this.props.replaceStyles;
+      return _extends({}, styles.base, styles[this.props.type]);
+    }
+  }, {
     key: 'render',
     value: function render() {
-      var style = undefined;
-      if (this.props.type === 'x') {
-        style = {
-          width: '10px',
-          height: '100%',
-          position: 'absolute',
-          top: '0',
-          right: '-5px',
-          cursor: 'col-resize'
-        };
-      } else if (this.props.type === 'y') {
-        style = {
-          width: '100%',
-          height: '10px',
-          position: 'absolute',
-          bottom: '-5px',
-          cursor: 'row-resize'
-        };
-      } else {
-        style = {
-          width: '10px',
-          height: '10px',
-          position: 'absolute',
-          right: '-5px',
-          bottom: '-5px',
-          cursor: 'nw-resize'
-        };
-      }
-      return _react2.default.createElement('div', { style: style,
+      var onTouchStart = this.onTouchStart.bind(this);
+      return _react2.default.createElement('div', {
+        style: this.getStyle(),
         onMouseDown: this.props.onResizeStart,
-        onTouchStart: this.onTouchStart.bind(this) });
+        onTouchStart: onTouchStart
+      });
     }
   }]);
 
-  return Risizer;
-}(_react2.default.Component);
+  return Resizer;
+}(_react.Component);
 
-exports.default = Risizer;
+Resizer.propTypes = {
+  onResizeStart: _react.PropTypes.func,
+  type: _react.PropTypes.oneOf(['top', 'right', 'bottom', 'left', 'topRight', 'bottomRight', 'bottomLeft', 'topLeft']).isRequired,
+  replaceStyles: _react.PropTypes.object
+};
+exports.default = Resizer;
+module.exports = exports['default'];
 
 },{"react":164}],9:[function(require,module,exports){
 /**
@@ -20992,6 +21325,8 @@ module.exports = require('./lib/React');
 },{"./lib/React":32}],165:[function(require,module,exports){
 'use strict';
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 Object.defineProperty(exports, "__esModule", {
@@ -21022,10 +21357,11 @@ var Balloon = function (_Component) {
 
     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Balloon).call(this, props));
 
-    var box = _this.props.start.box;
-    var destination = _this.props.start.destination;
+    var _this$props = _this.props;
+    var box = _this$props.box;
+    var pointer = _this$props.pointer;
 
-    var pointerState = _this.getPointer(box, destination);
+    var pointerState = _this.getPointer(box, pointer);
     _this.state = {
       pointer: pointerState,
       box: {
@@ -21041,8 +21377,27 @@ var Balloon = function (_Component) {
   }
 
   _createClass(Balloon, [{
+    key: 'componentWillReceiveProps',
+    value: function componentWillReceiveProps(nextProps) {
+      var box = nextProps.box;
+      var pointer = nextProps.pointer;
+
+      var pointerState = this.getPointer(box, pointer);
+      this.state = {
+        pointer: pointerState,
+        box: {
+          x: box.x,
+          y: box.y,
+          width: box.width,
+          height: box.height
+        },
+        maxHeight: this.props.maxHeight,
+        maxWidth: this.props.maxWidth
+      };
+    }
+  }, {
     key: 'onBoxResize',
-    value: function onBoxResize(_ref) {
+    value: function onBoxResize(_, _ref) {
       var width = _ref.width;
       var height = _ref.height;
       var _state = this.state;
@@ -21125,7 +21480,7 @@ var Balloon = function (_Component) {
       if (degree >= -45 && degree < 45) return 'right';
       if (degree >= 45 && degree < 135) return 'top';
       if (degree >= 135 && degree <= 180 || degree >= -180 && degree < -135) return 'left';
-      if (degree >= -135 && degree < -45) return 'bottom';
+      return 'bottom';
     }
   }, {
     key: 'getDegree',
@@ -21186,7 +21541,8 @@ var Balloon = function (_Component) {
     key: 'render',
     value: function render() {
       var _props = this.props;
-      var start = _props.start;
+      var box = _props.box;
+      var pointer = _props.pointer;
       var backgroundColor = _props.backgroundColor;
       var zIndex = _props.zIndex;
       var minWidth = _props.minWidth;
@@ -21199,6 +21555,8 @@ var Balloon = function (_Component) {
       var onBoxDragStart = _props.onBoxDragStart;
       var onBoxResizeStart = _props.onBoxResizeStart;
       var onBoxResizeStop = _props.onBoxResizeStop;
+      var disable = _props.disable;
+      var strokeColor = _props.strokeColor;
       var _state$pointer = this.state.pointer;
       var base = _state$pointer.base;
       var destination = _state$pointer.destination;
@@ -21207,14 +21565,52 @@ var Balloon = function (_Component) {
       var maxHeight = _state3.maxHeight;
       var maxWidth = _state3.maxWidth;
 
+      var cursor = disable ? { cursor: 'default' } : {};
       return _react2.default.createElement(
         'div',
-        { ref: 'wrapper', className: className, style: { width: '100%', height: '100%', zIndex: zIndex } },
+        {
+          ref: 'wrapper',
+          className: className,
+          style: {
+            width: '100%',
+            height: '100%',
+            zIndex: zIndex,
+            position: 'absolute',
+            pointerEvents: 'none'
+          }
+        },
         _react2.default.createElement(
           _reactResizableAndMovable2.default,
           {
-            start: start.box,
-            customStyle: Object.assign({}, style, { backgroundColor: backgroundColor }),
+            x: box.x,
+            y: box.y,
+            width: box.width,
+            height: box.height,
+            style: _extends({}, cursor, style, {
+              backgroundColor: backgroundColor,
+              pointerEvents: 'auto',
+              position: 'absolute'
+            }),
+            moveAxis: this.props.disable ? 'none' : 'both',
+            isResizable: this.props.disable ? {
+              top: false,
+              right: false,
+              bottom: false,
+              left: false,
+              topRight: false,
+              bottomRight: false,
+              topLeft: false,
+              bottomLeft: false
+            } : {
+              top: false,
+              right: true,
+              bottom: true,
+              left: false,
+              topRight: false,
+              bottomRight: true,
+              topLeft: false,
+              bottomLeft: false
+            },
             onDragStart: onBoxDragStart,
             onDrag: this.onBoxDrag.bind(this),
             onDragStop: this.onBoxDragStop.bind(this),
@@ -21230,30 +21626,44 @@ var Balloon = function (_Component) {
           },
           _react2.default.createElement(
             'div',
-            { style: { padding: '1px', width: '100%', height: '100%' } },
+            { style: { padding: '0px', width: '100%', height: '100%', pointerEvents: 'none' } },
             children
           )
         ),
         _react2.default.createElement(
           _reactResizableAndMovable2.default,
           {
-            start: { x: start.destination.x - 15, y: start.destination.y - 15 },
+            x: pointer.x,
+            y: pointer.y - 15,
+            width: 10,
+            height: 10,
+            style: _extends({}, _extends({ pointerEvents: 'auto' }, cursor)),
             onDragStart: onPointerDragStart,
             onDrag: this.onPointerDrag.bind(this),
             onDragStop: this.onPointerDragStop.bind(this),
             bounds: 'parent',
-            isResizable: { x: false, y: false, xy: false },
+            moveAxis: this.props.disable ? 'none' : 'both',
+            isResizable: {
+              top: false,
+              right: false,
+              bottom: false,
+              left: false,
+              topRight: false,
+              bottomRight: false,
+              topLeft: false,
+              bottomLeft: false
+            },
             zIndex: zIndex
           },
           marker
         ),
         _react2.default.createElement(
           'svg',
-          { width: '100%', height: '100%', style: { zIndex: zIndex } },
+          { width: '100%', height: '100%', style: { zIndex: zIndex, pointerEvents: 'none' } },
           _react2.default.createElement('path', {
             d: 'M ' + base[0].x + ' ' + base[0].y + '\n                 Q ' + control.x + ' ' + control.y + ' ' + destination.x + ' ' + destination.y + '\n                 Q ' + control.x + ' ' + control.y + ' ' + base[1].x + ' ' + base[1].y,
             fill: backgroundColor,
-            stroke: backgroundColor,
+            stroke: strokeColor,
             strokeWidth: 1
           })
         )
@@ -21265,7 +21675,8 @@ var Balloon = function (_Component) {
 }(_react.Component);
 
 Balloon.propTypes = {
-  start: _react.PropTypes.object.isRequired,
+  box: _react.PropTypes.object,
+  pointer: _react.PropTypes.object,
   backgroundColor: _react.PropTypes.string,
   zIndex: _react.PropTypes.number,
   minWidth: _react.PropTypes.number,
@@ -21284,23 +21695,25 @@ Balloon.propTypes = {
   onBoxResizeStop: _react.PropTypes.func,
   onPointerDragStart: _react.PropTypes.func,
   onPointerDrag: _react.PropTypes.func,
-  onPointerDragStop: _react.PropTypes.func
+  onPointerDragStop: _react.PropTypes.func,
+  disable: _react.PropTypes.bool,
+  onClick: _react.PropTypes.func,
+  strokeColor: _react.PropTypes.string
 };
 Balloon.defaultProps = {
-  start: {
-    box: {
-      x: 0,
-      y: 0,
-      width: 100,
-      height: 100
-    },
-    destination: {
-      x: 0,
-      y: 0
-    }
+  box: {
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 100
+  },
+  pointer: {
+    x: 0,
+    y: 0
   },
   marker: _react2.default.createElement('div', { style: { width: '30px', height: '30px' } }),
   backgroundColor: '#f5f5f5',
+  strokeColor: '#f5f5f5',
   zIndex: 100,
   className: '',
   style: {},
@@ -21330,8 +21743,13 @@ Balloon.defaultProps = {
   },
   onPointerDragStop: function onPointerDragStop() {
     return null;
+  },
+  disable: false,
+  onClick: function onClick() {
+    return null;
   }
 };
 exports.default = Balloon;
+module.exports = exports['default'];
 
 },{"react":164,"react-resizable-and-movable":5}]},{},[2]);
